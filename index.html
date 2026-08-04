@@ -794,13 +794,12 @@
     <div id="screenShield" class="card hidden">
       <div class="shield-box">
         <div class="shield-icon">🙈</div>
-        <div style="font-size: 0.95rem; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">Secret Hand-Off</div>
-        <div style="font-size: 1.15rem; color: #000000; font-weight: 800;">Pass the device secretly to:</div>
+        <div style="font-size: 0.95rem; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">Secret</div>
+        <div style="font-size: 1.15rem; color: #000000; font-weight: 800;">Pass to:</div>
         <div class="player-target-badge" id="shieldPlayerName">Player 1</div>
         <div style="font-size: 0.9rem; color: #000000; font-weight: 700; max-width: 280px; line-height: 1.4;">
-          Keep the screen hidden from everyone else in the room!
         </div>
-        <button class="btn btn-primary" id="btnRevealSecret">👁️ I am <span id="btnShieldPlayerNameText">Player 1</span> - Reveal</button>
+        <button class="btn btn-primary" id="btnRevealSecret"><span id="btnShieldPlayerNameText">Player 1</span> - Reveal</button>
       </div>
     </div>
 
@@ -811,7 +810,7 @@
         <div class="category-label" id="revealCategoryLabel">Topic Category</div>
         <div class="secret-word-display" id="secretWordDisplay">Elephant</div>
         <div class="tip-box" id="revealTipBox">
-          Say one word related to this topic during discussion. Don't be too obvious!
+          Say one word related to this topic.
         </div>
       </div>
 
@@ -1211,14 +1210,14 @@
           roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
         } else {
           // Insiders
           secretBox.className = 'secret-box insider';
           roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.secretWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
         }
       } else if (isImposter) {
         if (state.gameMode === 'decoy') {
@@ -1227,7 +1226,7 @@
           roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
         } else if (state.gameMode === 'no_hint') {
           // No Hint Mode
           secretBox.className = 'secret-box imposter';
@@ -1248,7 +1247,7 @@
         roleBadge.className = 'role-badge insider';
         roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
         wordDisplay.textContent = state.secretWordObj.secret;
-        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}" during discussion. Don't be too obvious!`;
+        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
       }
 
       showScreen('reveal');
