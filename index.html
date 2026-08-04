@@ -1204,12 +1204,12 @@
       setupTurnShield();
     }
 
-    function setupTurnShield() {
-      const pIdx = state.turnOrder[state.currentTurnIndex];
-      const currentPlayerName = state.playerNames[pIdx] || `Player ${pIdx + 1}`;
-      document.getElementById('shieldPlayerName').textContent = currentPlayerName;
-      document.getElementById('btnShieldPlayerNameText').textContent = currentPlayerName;
-      showScreen('shield');
+  function setupTurnShield() {
+    const pIdx = state.turnOrder[state.currentTurnIndex];
+    const currentPlayerName = state.playerNames[pIdx] || `Player ${pIdx + 1}`;
+    document.getElementById('shieldPlayerName').textContent = currentPlayerName;
+    showScreen('shield');
+  }
     }
 
     function revealSecretRole() {
