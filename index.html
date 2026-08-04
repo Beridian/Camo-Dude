@@ -600,7 +600,7 @@
           Say one word related to this topic.
         </div>
       </div>
-      <button class="btn btn-secondary" id="btnHideAndContinue">🔒 Hide & Next Player</button>
+      <button class="btn btn-secondary" id="btnHideAndContinue">Hide & Next Player</button>
     </div>
 
     <!-- SCREEN 4: DISCUSSION PHASE -->
@@ -609,7 +609,7 @@
         <h2 class="card-title">🗣️ Discussion</h2>
         <button class="btn btn-secondary" id="btnReshuffleTurnOrder" style="padding: 0.4rem 0.75rem; font-size: 0.9rem; min-height: 40px; width: auto;">Shuffle</button>
       </div>
-      <div class="card-subtitle">Going in order below, say OUT LOUD exactly ONE word related to the secret!</div>
+      <div class="card-subtitle">Going in order below, say OUT LOUD exactly ONE word or phrase related to the secret!</div>
 
       <div class="turn-order-list" id="turnOrderList"></div>
 
@@ -988,42 +988,42 @@
       if (state.gameMode === 'double_trouble') {
         if (isImposter) {
           secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          roleBadge.textContent = 'CAMO DUDE 🥸';
           wordDisplay.textContent = '❓ NO HINT';
-          tipBox.textContent = "You have NO HINT! There is also a DUNCE with a fake word. Listen to clues to deduce the secret!";
+          tipBox.textContent = "There is also a DUNCE with a fake word. Listen to clues to deduce the secret!";
         } else if (isDunce) {
           secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          roleBadge.textContent = 'INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}". Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
         } else {
           secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          roleBadge.textContent = 'INSIDER 🤫';
           wordDisplay.textContent = state.secretWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}". Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
         }
       } else if (isImposter) {
         if (state.gameMode === 'decoy') {
           secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          roleBadge.textContent = 'INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}". Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
         } else if (state.gameMode === 'no_hint') {
           secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          roleBadge.textContent = 'CAMO DUDE (OR DUDETTE) 🥸';
           wordDisplay.textContent = '❓ NO HINT';
           tipBox.textContent = "Listen closely to everyone's clues during discussion to deduce the secret word and blend in!";
         } else {
           secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          roleBadge.textContent = 'CAMO DUDE (OR DUDETTE) 🥸';
           wordDisplay.textContent = `Hint: "${state.secretWordObj.hint}"`;
-          tipBox.textContent = "Use the hint and listen to other players to blend in!";
+          tipBox.textContent = "Don't be a dingus. Blend in!";
         }
       } else {
         secretBox.className = 'secret-box insider';
-        roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+        roleBadge.textContent = 'INSIDER 🤫';
         wordDisplay.textContent = state.secretWordObj.secret;
-        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}". Don't be too obvious!`;
+        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
       }
       showScreen('reveal');
     }
@@ -1169,7 +1169,7 @@
           playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 IMPOSTERS ESCAPED!';
         }
       } else if (state.gameMode === 'decoy') {
-        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
+        html += buildRow('Camo Dude', state.playerNames[state.imposterIndex]);
         html += buildRow('Decoy Word', state.decoyWordObj.secret);
         html += buildRow('Secret Word', state.secretWordObj.secret);
         html += buildRow('Group Accused', accName);
