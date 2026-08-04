@@ -213,6 +213,27 @@
       gap: 0.75rem;
     }
 
+    /* Scrollable Utility */
+    .scroll-box {
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 0.25rem;
+      margin: -0.25rem;
+      padding-right: 0.5rem;
+    }
+    
+    /* Make scrollbars neat on supporting browsers */
+    .scroll-box::-webkit-scrollbar, .player-inputs::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scroll-box::-webkit-scrollbar-track, .player-inputs::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scroll-box::-webkit-scrollbar-thumb, .player-inputs::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+
     /* Player Counter Grid */
     .counter-row {
       background: var(--bg-yellow-light);
@@ -334,7 +355,7 @@
     .category-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
     .category-card.selected { background: var(--accent-teal); }
     .category-icon { font-size: 1.8rem; }
-    .category-name { font-size: 0.95rem; font-weight: 800; }
+    .category-name { font-size: 0.95rem; font-weight: 800; word-break: break-word; }
 
     .mode-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
     .mode-icon { font-size: 1.3rem; }
@@ -570,10 +591,12 @@
         </div>
       </div>
 
-      <!-- Category Selection -->
+      <!-- Category Selection (Scrollable to support many topics securely) -->
       <div>
         <div class="section-label">Select Topic Category</div>
-        <div class="grid-2" id="categoryGrid"></div>
+        <div class="scroll-box">
+          <div class="grid-2" id="categoryGrid"></div>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="btnStartGame">Start Game</button>
@@ -884,32 +907,38 @@
 
     function renderCategoryGrid() {
       const grid = document.getElementById('categoryGrid');
+      
+      // If the grid elements are already built, just update the CSS classes
+      // This prevents the scroll position from jumping when the user taps a card!
+      if (grid.children.length > 0) {
+        Array.from(grid.children).forEach(card => {
+          card.classList.toggle('selected', card.dataset.id === state.selectedCategoryId);
+        });
+        return;
+      }
+      
       grid.innerHTML = '';
       const cats = getCategories();
 
-      // Random Option
-      const randomCard = document.createElement('div');
-      randomCard.className = `selectable-card category-card ${state.selectedCategoryId === 'random' ? 'selected' : ''}`;
-      randomCard.innerHTML = `<span class="category-icon">🎲</span><span class="category-name">Random</span>`;
-      randomCard.addEventListener('click', () => {
-        playSound('click');
-        state.selectedCategoryId = 'random';
-        renderCategoryGrid();
-      });
-      grid.appendChild(randomCard);
-
-      // Category Options
-      cats.forEach(cat => {
+      // Factory helper to build the cards cleanly
+      const createCard = (id, icon, name) => {
         const card = document.createElement('div');
-        card.className = `selectable-card category-card ${state.selectedCategoryId === cat.id ? 'selected' : ''}`;
-        card.innerHTML = `<span class="category-icon">${cat.icon}</span><span class="category-name">${cat.name}</span>`;
+        card.dataset.id = id;
+        card.className = `selectable-card category-card ${state.selectedCategoryId === id ? 'selected' : ''}`;
+        card.innerHTML = `<span class="category-icon">${icon}</span><span class="category-name">${name}</span>`;
         card.addEventListener('click', () => {
           playSound('click');
-          state.selectedCategoryId = cat.id;
-          renderCategoryGrid();
+          state.selectedCategoryId = id;
+          // Apply selection visuals inline instantly
+          Array.from(grid.children).forEach(c => {
+             c.classList.toggle('selected', c.dataset.id === id);
+          });
         });
-        grid.appendChild(card);
-      });
+        return card;
+      };
+
+      grid.appendChild(createCard('random', '🎲', 'Random'));
+      cats.forEach(cat => grid.appendChild(createCard(cat.id, cat.icon, cat.name)));
     }
 
     // --- 6. GAME LOOP LOGIC ---
@@ -1053,283 +1082,4 @@
         item.className = 'turn-item';
         item.innerHTML = `
           <span class="turn-num">${pos + 1}</span>
-          <span style="font-size: 1.3rem;">${AVATARS[pIdx % AVATARS.length]}</span>
-          <span>${state.playerNames[pIdx]}</span>
-        `;
-        turnList.appendChild(item);
-      });
-    }
-
-    function renderVotingGrid() {
-      showScreen('voting');
-      state.votedPlayerIndex = -1;
-      const btnConfirm = document.getElementById('btnConfirmVote');
-      btnConfirm.disabled = true;
-
-      const vTitle = document.getElementById('votingTitle');
-      const vSub = document.getElementById('votingSubtitle');
-      if (state.gameMode === 'double_trouble') {
-        vTitle.textContent = '🔎 Catch an Imposter!';
-        vSub.textContent = 'There are 2 imposters: Camo Dude & Dunce! Tap who you suspect.';
-      } else if (state.gameMode === 'decoy') {
-        vTitle.textContent = '🔎 Find the Decoy!';
-        vSub.textContent = 'Tap the player who seems to have a different secret word!';
-      } else {
-        vTitle.textContent = '🔎 Who is Camo Dude?';
-        vSub.textContent = 'Discuss and tap the player you suspect of blending in!';
-      }
-
-      const grid = document.getElementById('votingGrid');
-      grid.innerHTML = '';
-      state.playerNames.forEach((name, idx) => {
-        const card = document.createElement('div');
-        card.className = 'selectable-card category-card';
-        card.innerHTML = `<span class="category-icon">${AVATARS[idx % AVATARS.length]}</span><span class="category-name">${name}</span>`;
-        card.addEventListener('click', () => {
-          playSound('click');
-          state.votedPlayerIndex = idx;
-          btnConfirm.disabled = false;
-          Array.from(grid.children).forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-        });
-        grid.appendChild(card);
-      });
-    }
-
-    function confirmVoting() {
-      playSound('click');
-      const accIdx = state.votedPlayerIndex;
-
-      if (state.gameMode === 'double_trouble') {
-        if (accIdx === state.imposterIndex) {
-          state.caughtRole = 'camo'; triggerImposterGuessPhase();
-        } else if (accIdx === state.dunceIndex) {
-          state.caughtRole = 'dunce'; triggerImposterGuessPhase();
-        } else {
-          renderResolution({ winner: 'imposter', reason: 'Innocent Insider accused!' });
-        }
-      } else {
-        if (accIdx === state.imposterIndex) {
-          state.caughtRole = 'camo'; triggerImposterGuessPhase();
-        } else {
-          renderResolution({ winner: 'imposter', reason: 'Camo Dude escaped!' });
-        }
-      }
-    }
-
-    function triggerImposterGuessPhase() {
-      const caughtIndex = (state.caughtRole === 'dunce') ? state.dunceIndex : state.imposterIndex;
-      const accusedName = state.playerNames[caughtIndex];
-
-      document.getElementById('accusedImposterName').textContent = accusedName;
-      document.getElementById('accusedImposterName2').textContent = accusedName;
-      document.getElementById('imposterCategoryHeader').textContent = `Category: ${state.currentCategory.name}`;
-
-      const title = document.getElementById('imposterGuessTitle');
-      const tipBox = document.getElementById('imposterGuessTip');
-
-      if (state.gameMode === 'double_trouble') {
-        if (state.caughtRole === 'dunce') {
-          title.textContent = '🎭 Dunce Caught!';
-          tipBox.textContent = `🔊 ${accusedName} was the Dunce with fake word ("${state.decoyWordObj.secret}")! Guess the Insiders' word!`;
-        } else {
-          title.textContent = '🥸 Camo Dude Caught!';
-          tipBox.textContent = `🔊 ${accusedName}, guess the Insiders' word OUT LOUD before checking!`;
-        }
-      } else if (state.gameMode === 'decoy') {
-        title.textContent = '🥸 Caught! Decoy Word Revealed!';
-        tipBox.textContent = `🔊 ${accusedName} had the decoy word ("${state.decoyWordObj.secret}")! Guess the true word!`;
-      } else {
-        title.textContent = "🥸 Caught! Last Chance";
-        tipBox.textContent = "🔊 Say your secret word guess OUT LOUD before revealing!";
-      }
-
-      document.getElementById('imposterGuessStep1').style.display = 'flex';
-      document.getElementById('imposterGuessStep2').style.display = 'none';
-      showScreen('imposterGuess');
-    }
-
-    function renderResolution(res) {
-      const banner = document.getElementById('resultBanner');
-      const container = document.getElementById('resolutionDetailsContainer');
-      const accName = state.playerNames[state.votedPlayerIndex] || "Nobody";
-      
-      const buildRow = (label, value) => `<div class="result-detail-row"><span class="result-detail-label">${label}</span><span class="result-detail-value">${value}</span></div>`;
-      
-      let html = '';
-      if (state.gameMode === 'double_trouble') {
-        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
-        html += buildRow('The Dunce 🎭', `${state.playerNames[state.dunceIndex]} ("${state.decoyWordObj.secret}")`);
-        html += buildRow('Secret Word 🤫', state.secretWordObj.secret);
-        html += buildRow('Group Accused ⚖️', accName);
-        
-        if (res.winner === 'insiders') {
-          playSound('win'); banner.className = 'result-banner win'; banner.textContent = `🎉 INSIDERS WIN! Caught ${accName}!`;
-        } else if (res.winner === 'imposter_stole') {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = (state.caughtRole === 'dunce') ? '🧠 DUNCE STOLE WIN!' : '🧠 CAMO DUDE STOLE WIN!';
-        } else {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 IMPOSTERS ESCAPED!';
-        }
-      } else if (state.gameMode === 'decoy') {
-        html += buildRow('Camo Dude', state.playerNames[state.imposterIndex]);
-        html += buildRow('Decoy Word', state.decoyWordObj.secret);
-        html += buildRow('Secret Word', state.secretWordObj.secret);
-        html += buildRow('Group Accused', accName);
-        
-        if (res.winner === 'insiders') {
-          playSound('win'); banner.className = 'result-banner win'; banner.textContent = '🎉 INSIDERS WIN!';
-        } else if (res.winner === 'imposter_stole') {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🧠 CAMO DUDE STOLE WIN!';
-        } else {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 CAMO DUDE ESCAPED!';
-        }
-      } else {
-        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
-        html += buildRow('Secret Word', state.secretWordObj.secret);
-        html += buildRow('Hint', state.gameMode === 'no_hint' ? 'None' : state.secretWordObj.hint);
-        html += buildRow('Group Accused', accName);
-        
-        if (res.winner === 'insiders') {
-          playSound('win'); banner.className = 'result-banner win'; banner.textContent = '🎉 INSIDERS WIN!';
-        } else if (res.winner === 'imposter_stole') {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🧠 CAMO DUDE STOLE WIN!';
-        } else {
-          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 CAMO DUDE ESCAPED!';
-        }
-      }
-      
-      container.innerHTML = html;
-      showScreen('resolution');
-    }
-
-    // --- 7. TIMER LOGIC ---
-    function startTimer() {
-      playSound('click');
-      if (state.timerInterval) clearInterval(state.timerInterval);
-
-      const btnStart = document.getElementById('btnStartTimer');
-      btnStart.textContent = '⏸️ Pause';
-
-      state.timerInterval = setInterval(() => {
-        if (state.timerSeconds > 0) {
-          state.timerSeconds--;
-          updateTimerDisplay();
-          if (state.timerSeconds <= 5 && state.timerSeconds > 0) playSound('tick');
-        } else {
-          clearInterval(state.timerInterval);
-          state.timerInterval = null;
-          playSound('loss');
-          btnStart.textContent = '▶️ Start';
-        }
-      }, 1000);
-    }
-
-    function resetTimer() {
-      if (state.timerInterval) {
-        clearInterval(state.timerInterval);
-        state.timerInterval = null;
-      }
-      state.timerSeconds = 60;
-      updateTimerDisplay();
-      document.getElementById('btnStartTimer').textContent = '▶️ Start';
-    }
-
-    function updateTimerDisplay() {
-      const mins = Math.floor(state.timerSeconds / 60);
-      const secs = state.timerSeconds % 60;
-      document.getElementById('timerDisplay').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    }
-
-    // --- 8. EVENT LISTENERS ---
-    function attachEventListeners() {
-      document.getElementById('audioToggleBtn').onclick = (e) => {
-        state.soundEnabled = !state.soundEnabled;
-        e.target.textContent = state.soundEnabled ? '🔊' : '🔇';
-      };
-
-      document.getElementById('btnMinusPlayers').onclick = () => {
-        playSound('click');
-        const minPlayers = (state.gameMode === 'double_trouble') ? 4 : 3;
-        if (state.playerCount > minPlayers) {
-          state.playerCount--;
-          state.playerNames = state.playerNames.slice(0, state.playerCount);
-          renderPlayerInputs();
-        }
-      };
-
-      document.getElementById('btnPlusPlayers').onclick = () => {
-        playSound('click');
-        if (state.playerCount < 8) {
-          state.playerCount++;
-          state.playerNames.push(`Player ${state.playerCount}`);
-          renderPlayerInputs();
-        }
-      };
-
-      const turnCard = document.getElementById('turnOrderToggleCard');
-      turnCard.onclick = () => {
-        playSound('click');
-        state.randomizeTurnOrder = !state.randomizeTurnOrder;
-        turnCard.dataset.active = state.randomizeTurnOrder;
-        document.getElementById('turnOrderBadge').textContent = state.randomizeTurnOrder ? '✅' : '❌';
-      };
-
-      document.getElementById('btnReshuffleTurnOrder').onclick = () => {
-        playSound('click');
-        for (let i = state.turnOrder.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [state.turnOrder[i], state.turnOrder[j]] = [state.turnOrder[j], state.turnOrder[i]];
-        }
-        renderTurnOrderList();
-      };
-
-      // Flow Buttons
-      document.getElementById('btnStartGame').onclick = startGame;
-      document.getElementById('btnRevealSecret').onclick = revealSecretRole;
-      document.getElementById('btnHideAndContinue').onclick = advancePassAndPlay;
-      document.getElementById('btnBeginVoting').onclick = renderVotingGrid;
-      document.getElementById('btnConfirmVote').onclick = confirmVoting;
-
-      // Guess Check Buttons
-      document.getElementById('btnRevealWordForCheck').onclick = () => {
-        playSound('reveal');
-        document.getElementById('secretWordCheckDisplay').textContent = state.secretWordObj.secret;
-        document.getElementById('imposterGuessStep1').style.display = 'none';
-        document.getElementById('imposterGuessStep2').style.display = 'flex';
-      };
-
-      document.getElementById('btnGuessCorrect').onclick = () => {
-        playSound('click');
-        renderResolution({ winner: 'imposter_stole' });
-      };
-
-      document.getElementById('btnGuessWrong').onclick = () => {
-        playSound('click');
-        renderResolution({ winner: 'insiders' });
-      };
-
-      // Restart Buttons
-      document.getElementById('btnPlayAgainSame').onclick = startGame;
-      document.getElementById('btnNewGame').onclick = () => {
-        playSound('click');
-        showScreen('setup');
-      };
-
-      // Timer Buttons
-      document.getElementById('btnStartTimer').onclick = () => {
-        if (state.timerInterval) {
-          clearInterval(state.timerInterval);
-          state.timerInterval = null;
-          document.getElementById('btnStartTimer').textContent = '▶️ Resume';
-        } else {
-          startTimer();
-        }
-      };
-      document.getElementById('btnResetTimer').onclick = resetTimer;
-    }
-
-    // Run Init
-    initUI();
-  </script>
-</body>
-</html>
+          <span style="font-size:
