@@ -324,6 +324,59 @@
       gap: 0.75rem;
     }
 
+    /* Game Mode Selection */
+    .mode-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .mode-card {
+      background: #FFFFFF;
+      border: 3px solid #000000;
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 4px 4px 0px 0px #000000;
+    }
+
+    .mode-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px 0px #000000;
+      background: #FFF9D2;
+    }
+
+    .mode-card.selected {
+      background: #C7D2FE;
+      box-shadow: 5px 5px 0px 0px #000000;
+    }
+
+    .mode-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .mode-icon {
+      font-size: 1.3rem;
+    }
+
+    .mode-title {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #000000;
+      text-transform: uppercase;
+    }
+
+    .mode-desc {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+      line-height: 1.35;
+    }
+
     .category-card {
       background: #FFFFFF;
       border: 3px solid #000000;
@@ -693,6 +746,41 @@
         <div class="player-inputs" id="playerInputsContainer"></div>
       </div>
 
+      <!-- Game Mode Selection -->
+      <div>
+        <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;">Select Game Mode</div>
+        <div class="mode-grid" id="modeGrid">
+          <div class="mode-card selected" data-mode="hint">
+            <div class="mode-header">
+              <span class="mode-icon">💡</span>
+              <span class="mode-title">Hint Mode</span>
+            </div>
+            <div class="mode-desc">Camo Dude knows their role & receives a category hint (e.g. "Mammal").</div>
+          </div>
+          <div class="mode-card" data-mode="no_hint">
+            <div class="mode-header">
+              <span class="mode-icon">❓</span>
+              <span class="mode-title">No Hint Mode</span>
+            </div>
+            <div class="mode-desc">Camo Dude knows their role but receives ZERO hints!</div>
+          </div>
+          <div class="mode-card" data-mode="decoy">
+            <div class="mode-header">
+              <span class="mode-icon">🎭</span>
+              <span class="mode-title">Decoy Word Mode</span>
+            </div>
+            <div class="mode-desc">Camo Dude gets a DIFFERENT word and DOES NOT KNOW they are the imposter!</div>
+          </div>
+          <div class="mode-card" data-mode="double_trouble">
+            <div class="mode-header">
+              <span class="mode-icon">🎪</span>
+              <span class="mode-title">Double Agent Mode</span>
+            </div>
+            <div class="mode-desc">2 Imposters! 1 Camo Dude (No Hint) + 1 Dunce (Fake Word, doesn't know they're imposter)!</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Category Selection -->
       <div>
         <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;">Select Topic Category</div>
@@ -797,24 +885,7 @@
     <div id="screenResolution" class="card hidden">
       <div class="result-banner" id="resultBanner">INSIDERS WIN! 🎉</div>
 
-      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <div class="result-detail-row">
-          <span class="result-detail-label">The Camo Dude 🥸</span>
-          <span class="result-detail-value" id="resImposterName">Alex</span>
-        </div>
-        <div class="result-detail-row">
-          <span class="result-detail-label">Secret Word</span>
-          <span class="result-detail-value" style="color: #000000;" id="resSecretWord">Elephant</span>
-        </div>
-        <div class="result-detail-row">
-          <span class="result-detail-label">Camo Dude's Hint</span>
-          <span class="result-detail-value" style="color: #000000;" id="resImposterHint">Mammal</span>
-        </div>
-        <div class="result-detail-row">
-          <span class="result-detail-label">Group Accused</span>
-          <span class="result-detail-value" id="resAccusedName">Alex</span>
-        </div>
-      </div>
+      <div id="resolutionDetailsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
 
       <button class="btn btn-primary" id="btnPlayAgainSame">🔄 Play Again (Same Players)</button>
       <button class="btn btn-secondary" id="btnNewGame">⚙️ Game Setup</button>
@@ -832,10 +903,14 @@
     let state = {
       playerCount: 4,
       playerNames: ["Player 1", "Player 2", "Player 3", "Player 4"],
+      gameMode: "hint", // "hint" | "no_hint" | "decoy" | "double_trouble"
       selectedCategoryId: "random",
       currentCategory: null,
       secretWordObj: null,
-      imposterIndex: -1,
+      decoyWordObj: null,
+      imposterIndex: -1, // Camo Dude
+      dunceIndex: -1,    // Dunce (Fake Word)
+      caughtRole: null,  // 'camo' | 'dunce'
       currentTurnIndex: 0,
       votedPlayerIndex: -1,
       timerSeconds: 60,
@@ -943,8 +1018,30 @@
     // --- 5. INITIALIZATION & UI RENDERING ---
     function initUI() {
       renderPlayerInputs();
+      renderModeGrid();
       renderCategoryGrid();
       attachEventListeners();
+    }
+
+    function renderModeGrid() {
+      const cards = document.querySelectorAll('#modeGrid .mode-card');
+      cards.forEach(card => {
+        const mode = card.getAttribute('data-mode');
+        if (mode === state.gameMode) {
+          card.classList.add('selected');
+        } else {
+          card.classList.remove('selected');
+        }
+        card.onclick = () => {
+          playSound('click');
+          state.gameMode = mode;
+          if (state.gameMode === 'double_trouble' && state.playerCount < 4) {
+            state.playerCount = 4;
+            renderPlayerInputs();
+          }
+          renderModeGrid();
+        };
+      });
     }
 
     function showScreen(screenKey) {
@@ -981,7 +1078,8 @@
         container.appendChild(group);
       }
       document.getElementById('playerCountVal').textContent = state.playerCount;
-      document.getElementById('btnMinusPlayers').disabled = state.playerCount <= 3;
+      const minPlayers = (state.gameMode === 'double_trouble') ? 4 : 3;
+      document.getElementById('btnMinusPlayers').disabled = state.playerCount <= minPlayers;
       document.getElementById('btnPlusPlayers').disabled = state.playerCount >= 8;
     }
 
@@ -1035,12 +1133,41 @@
         state.currentCategory = cats.find(c => c.id === state.selectedCategoryId) || cats[0];
       }
 
-      // Pick Secret Word
+      // Pick Secret Word for Insiders
       const wordIdx = Math.floor(Math.random() * state.currentCategory.words.length);
       state.secretWordObj = state.currentCategory.words[wordIdx];
 
-      // Pick Imposter
-      state.imposterIndex = Math.floor(Math.random() * state.playerCount);
+      // Reset caughtRole
+      state.caughtRole = null;
+
+      // Assign Imposters and Decoy Words based on Mode
+      if (state.gameMode === 'double_trouble') {
+        // Double Agent Mode: 1 Camo Dude (No Hint) + 1 Dunce (Decoy Word)
+        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
+        let dunceIdx = Math.floor(Math.random() * state.playerCount);
+        while (dunceIdx === state.imposterIndex) {
+          dunceIdx = Math.floor(Math.random() * state.playerCount);
+        }
+        state.dunceIndex = dunceIdx;
+
+        const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
+        const decoyIdx = Math.floor(Math.random() * otherWords.length);
+        state.decoyWordObj = otherWords[decoyIdx];
+      } else if (state.gameMode === 'decoy') {
+        // Decoy Mode: 1 Camo Dude who receives Decoy Word
+        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
+        state.dunceIndex = -1;
+
+        const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
+        const decoyIdx = Math.floor(Math.random() * otherWords.length);
+        state.decoyWordObj = otherWords[decoyIdx];
+      } else {
+        // Hint or No Hint Mode
+        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
+        state.dunceIndex = -1;
+        state.decoyWordObj = null;
+      }
+
       state.currentTurnIndex = 0;
 
       // Reset timer
@@ -1060,6 +1187,8 @@
     function revealSecretRole() {
       playSound('reveal');
       const isImposter = (state.currentTurnIndex === state.imposterIndex);
+      const isDunce = (state.gameMode === 'double_trouble' && state.currentTurnIndex === state.dunceIndex);
+
       const secretBox = document.getElementById('secretBox');
       const roleBadge = document.getElementById('roleBadge');
       const categoryLabel = document.getElementById('revealCategoryLabel');
@@ -1068,12 +1197,52 @@
 
       categoryLabel.textContent = `Category: ${state.currentCategory.name}`;
 
-      if (isImposter) {
-        secretBox.className = 'secret-box imposter';
-        roleBadge.className = 'role-badge imposter';
-        roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
-        wordDisplay.textContent = `Hint: "${state.secretWordObj.hint}"`;
-        tipBox.textContent = "You are the CAMO DUDE! Listen closely to other players' words during discussion to deduce the secret word and blend in!";
+      if (state.gameMode === 'double_trouble') {
+        if (isImposter) {
+          // Camo Dude in Double Agent Mode (No Hint)
+          secretBox.className = 'secret-box imposter';
+          roleBadge.className = 'role-badge imposter';
+          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          wordDisplay.textContent = '❓ NO HINT';
+          tipBox.textContent = "You are the CAMO DUDE with NO HINT! There is also a DUNCE with a fake word. Listen closely to everyone's clues to deduce the secret word!";
+        } else if (isDunce) {
+          // Dunce in Double Agent Mode (Gets Decoy Word, thinks they are Insider)
+          secretBox.className = 'secret-box insider';
+          roleBadge.className = 'role-badge insider';
+          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          wordDisplay.textContent = state.decoyWordObj.secret;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+        } else {
+          // Insiders
+          secretBox.className = 'secret-box insider';
+          roleBadge.className = 'role-badge insider';
+          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          wordDisplay.textContent = state.secretWordObj.secret;
+          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}" during discussion. Don't be too obvious!`;
+        }
+      } else if (isImposter) {
+        if (state.gameMode === 'decoy') {
+          // Decoy Mode: Camo Dude receives a decoy word and believes they are an Insider!
+          secretBox.className = 'secret-box insider';
+          roleBadge.className = 'role-badge insider';
+          roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
+          wordDisplay.textContent = state.decoyWordObj.secret;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+        } else if (state.gameMode === 'no_hint') {
+          // No Hint Mode
+          secretBox.className = 'secret-box imposter';
+          roleBadge.className = 'role-badge imposter';
+          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          wordDisplay.textContent = '❓ NO HINT';
+          tipBox.textContent = "You are the CAMO DUDE with NO HINT! Listen closely to everyone's clues during discussion to deduce the secret word and blend in!";
+        } else {
+          // Hint Mode (Default)
+          secretBox.className = 'secret-box imposter';
+          roleBadge.className = 'role-badge imposter';
+          roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
+          wordDisplay.textContent = `Hint: "${state.secretWordObj.hint}"`;
+          tipBox.textContent = "You are the CAMO DUDE! Listen closely to other players' words during discussion to deduce the secret word and blend in!";
+        }
       } else {
         secretBox.className = 'secret-box insider';
         roleBadge.className = 'role-badge insider';
@@ -1120,6 +1289,20 @@
       const btnConfirm = document.getElementById('btnConfirmVote');
       btnConfirm.disabled = true;
 
+      // Dynamic voting screen text based on game mode
+      const votingTitle = document.querySelector('#screenVoting .card-title');
+      const votingSubtitle = document.querySelector('#screenVoting .card-subtitle');
+      if (state.gameMode === 'double_trouble') {
+        if (votingTitle) votingTitle.textContent = '🔎 Catch an Imposter!';
+        if (votingSubtitle) votingSubtitle.textContent = 'There are 2 imposters: 1 Camo Dude (No Hint) & 1 Dunce (Fake Word)! Tap the player you suspect!';
+      } else if (state.gameMode === 'decoy') {
+        if (votingTitle) votingTitle.textContent = '🔎 Who has the Decoy Word?';
+        if (votingSubtitle) votingSubtitle.textContent = 'Discuss as a family and tap the player who seems to have a different secret word!';
+      } else {
+        if (votingTitle) votingTitle.textContent = '🔎 Who is the Camo Dude?';
+        if (votingSubtitle) votingSubtitle.textContent = 'Discuss as a family and tap the player you suspect of blending in!';
+      }
+
       const grid = document.getElementById('votingGrid');
       grid.innerHTML = '';
 
@@ -1145,26 +1328,65 @@
     function confirmVoting() {
       playSound('click');
       const accusedIndex = state.votedPlayerIndex;
-      const isImposterCaught = (accusedIndex === state.imposterIndex);
 
-      if (isImposterCaught) {
-        // Trigger Imposter Guess Phase!
-        triggerImposterGuessPhase();
+      if (state.gameMode === 'double_trouble') {
+        const isCamoCaught = (accusedIndex === state.imposterIndex);
+        const isDunceCaught = (accusedIndex === state.dunceIndex);
+
+        if (isCamoCaught) {
+          state.caughtRole = 'camo';
+          triggerImposterGuessPhase();
+        } else if (isDunceCaught) {
+          state.caughtRole = 'dunce';
+          triggerImposterGuessPhase();
+        } else {
+          // Innocent Insider accused
+          renderResolution({
+            winner: 'imposter',
+            reason: 'An innocent Insider was accused! Both Camo Dude and Dunce escaped!'
+          });
+        }
       } else {
-        // Chameleon Escaped!
-        renderResolution({
-          winner: 'imposter',
-          reason: 'Chameleon escaped un-voted!'
-        });
+        const isImposterCaught = (accusedIndex === state.imposterIndex);
+        if (isImposterCaught) {
+          state.caughtRole = 'camo';
+          triggerImposterGuessPhase();
+        } else {
+          renderResolution({
+            winner: 'imposter',
+            reason: 'Chameleon escaped un-voted!'
+          });
+        }
       }
     }
 
     function triggerImposterGuessPhase() {
-      const imposterName = state.playerNames[state.imposterIndex];
-      document.getElementById('accusedImposterName').textContent = imposterName;
+      const caughtIndex = (state.caughtRole === 'dunce') ? state.dunceIndex : state.imposterIndex;
+      const accusedName = state.playerNames[caughtIndex];
+
+      document.getElementById('accusedImposterName').textContent = accusedName;
       const accusedEl2 = document.getElementById('accusedImposterName2');
-      if (accusedEl2) accusedEl2.textContent = imposterName;
+      if (accusedEl2) accusedEl2.textContent = accusedName;
       document.getElementById('imposterCategoryHeader').textContent = `Topic: ${state.currentCategory.name}`;
+
+      const cardTitle = document.querySelector('#screenImposterGuess .card-title');
+      const tipBox = document.querySelector('#imposterGuessStep1 div');
+
+      if (state.gameMode === 'double_trouble') {
+        if (state.caughtRole === 'dunce') {
+          if (cardTitle) cardTitle.textContent = '🎭 Dunce Caught! Decoy Word Revealed!';
+          if (tipBox) tipBox.textContent = `🔊 ${accusedName} was the Dunce with the fake word ("${state.decoyWordObj.secret}")! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+        } else {
+          if (cardTitle) cardTitle.textContent = '🥸 Camo Dude Caught! Last Chance';
+          if (tipBox) tipBox.textContent = `🔊 ${accusedName} is the Camo Dude! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+        }
+      } else if (state.gameMode === 'decoy') {
+        if (cardTitle) cardTitle.textContent = '🥸 Caught! Decoy Word Revealed!';
+        if (tipBox) tipBox.textContent = `🔊 ${accusedName} had the decoy word ("${state.decoyWordObj.secret}")! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+      } else {
+        if (cardTitle) cardTitle.textContent = "🥸 Caught! Camo Dude's Last Chance";
+        if (tipBox) tipBox.textContent = "🔊 Camo Dude: Say your secret word guess OUT LOUD to the room before tapping below!";
+      }
 
       const step1 = document.getElementById('imposterGuessStep1');
       const step2 = document.getElementById('imposterGuessStep2');
@@ -1176,26 +1398,118 @@
 
     function renderResolution(resultData) {
       const banner = document.getElementById('resultBanner');
-      const imposterName = state.playerNames[state.imposterIndex];
-      const accusedName = state.playerNames[state.votedPlayerIndex];
+      const accusedName = state.playerNames[state.votedPlayerIndex] || "Nobody";
+      const container = document.getElementById('resolutionDetailsContainer');
+      container.innerHTML = '';
 
-      document.getElementById('resImposterName').textContent = imposterName;
-      document.getElementById('resSecretWord').textContent = state.secretWordObj.secret;
-      document.getElementById('resImposterHint').textContent = state.secretWordObj.hint;
-      document.getElementById('resAccusedName').textContent = accusedName;
+      if (state.gameMode === 'double_trouble') {
+        const camoName = state.playerNames[state.imposterIndex];
+        const dunceName = state.playerNames[state.dunceIndex];
 
-      if (resultData.winner === 'insiders') {
-        playSound('win');
-        banner.className = 'result-banner win';
-        banner.textContent = '🎉 INSIDERS WIN!';
-      } else if (resultData.winner === 'imposter_stole') {
-        playSound('loss');
-        banner.className = 'result-banner loss';
-        banner.textContent = '🧠 CAMO DUDE STOLE THE WIN!';
+        container.innerHTML = `
+          <div class="result-detail-row">
+            <span class="result-detail-label">Camo Dude 🥸 (No Hint)</span>
+            <span class="result-detail-value">${camoName}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">The Dunce 🎭 (Fake Word)</span>
+            <span class="result-detail-value">${dunceName} ("${state.decoyWordObj.secret}")</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Secret Word 🤫</span>
+            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Group Accused ⚖️</span>
+            <span class="result-detail-value">${accusedName}</span>
+          </div>
+        `;
+
+        if (resultData.winner === 'insiders') {
+          playSound('win');
+          banner.className = 'result-banner win';
+          banner.textContent = `🎉 INSIDERS WIN! Caught ${accusedName}!`;
+        } else if (resultData.winner === 'imposter_stole') {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = (state.caughtRole === 'dunce') ? '🧠 DUNCE STOLE THE WIN!' : '🧠 CAMO DUDE STOLE THE WIN!';
+        } else {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = '🥸 CAMO DUDE & DUNCE ESCAPED!';
+        }
+
+      } else if (state.gameMode === 'decoy') {
+        const imposterName = state.playerNames[state.imposterIndex];
+        container.innerHTML = `
+          <div class="result-detail-row">
+            <span class="result-detail-label">The Camo Dude 🥸</span>
+            <span class="result-detail-value">${imposterName}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Camo's Decoy Word</span>
+            <span class="result-detail-value" style="color: #000000;">${state.decoyWordObj.secret}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Insiders' Secret Word</span>
+            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Group Accused</span>
+            <span class="result-detail-value">${accusedName}</span>
+          </div>
+        `;
+
+        if (resultData.winner === 'insiders') {
+          playSound('win');
+          banner.className = 'result-banner win';
+          banner.textContent = '🎉 INSIDERS WIN!';
+        } else if (resultData.winner === 'imposter_stole') {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = '🧠 CAMO DUDE STOLE THE WIN!';
+        } else {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = '🥸 UNDERCOVER CAMO DUDE ESCAPED!';
+        }
+
       } else {
-        playSound('loss');
-        banner.className = 'result-banner loss';
-        banner.textContent = '🥸 CAMO DUDE ESCAPED!';
+        const imposterName = state.playerNames[state.imposterIndex];
+        const hintVal = (state.gameMode === 'no_hint') ? 'None (No Hint Mode)' : state.secretWordObj.hint;
+
+        container.innerHTML = `
+          <div class="result-detail-row">
+            <span class="result-detail-label">The Camo Dude 🥸</span>
+            <span class="result-detail-value">${imposterName}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Secret Word</span>
+            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Camo Dude's Hint</span>
+            <span class="result-detail-value" style="color: #000000;">${hintVal}</span>
+          </div>
+          <div class="result-detail-row">
+            <span class="result-detail-label">Group Accused</span>
+            <span class="result-detail-value">${accusedName}</span>
+          </div>
+        `;
+
+        if (resultData.winner === 'insiders') {
+          playSound('win');
+          banner.className = 'result-banner win';
+          banner.textContent = '🎉 INSIDERS WIN!';
+        } else if (resultData.winner === 'imposter_stole') {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = '🧠 CAMO DUDE STOLE THE WIN!';
+        } else {
+          playSound('loss');
+          banner.className = 'result-banner loss';
+          banner.textContent = '🥸 CAMO DUDE ESCAPED!';
+        }
       }
 
       showScreen('resolution');
