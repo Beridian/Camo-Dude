@@ -1,6 +1,6 @@
 {
-  "name": "Camo Dude",
-  "description": "A pass-and-play social deduction game for families where players try to catch the Camo Dude.",
+  "name": "Camo Dude - Social Deduction Game",
+  "description": "A pass-and-play social deduction game for families and kids where players try to catch the Camo Dude.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
