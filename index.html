@@ -4,24 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Camo Dude</title>
+  <!-- Load external categories, but we have a fallback in JS just in case -->
   <script src="categories.js"></script>
   <style>
     :root {
+      /* Palette */
       --bg-yellow: #FFD93B;
+      --bg-yellow-light: #FFE66D;
       --bg-card: #FFFFFF;
+      --bg-surface: #F8FAFC;
+      --bg-info: #FFF9D2;
       --border-color: #000000;
+      
+      /* Text Colors */
       --text-main: #000000;
       --text-muted: #475569;
+      --text-light: #FFFFFF;
+      
+      /* Accents */
       --accent-coral: #FF6B6B;
       --accent-teal: #4ECDC4;
       --accent-yellow: #FFD93B;
-      --accent-purple: #A855F7;
+      --accent-purple: #C7D2FE;
+      --accent-danger: #FF4757;
+      
+      /* Radii */
       --radius-lg: 24px;
       --radius-md: 16px;
       --radius-sm: 12px;
-      --shadow-card: 8px 8px 0px 0px #000000;
-      --shadow-btn: 4px 4px 0px 0px #000000;
-      --shadow-btn-hover: 6px 6px 0px 0px #000000;
+      
+      /* Shadows */
+      --shadow-base: 4px 4px 0px 0px var(--border-color);
+      --shadow-hover: 6px 6px 0px 0px var(--border-color);
+      --shadow-active: 2px 2px 0px 0px var(--border-color);
+      --shadow-card: 8px 8px 0px 0px var(--border-color);
     }
 
     * {
@@ -35,7 +51,7 @@
 
     body {
       background-color: var(--bg-yellow);
-      background-image: radial-gradient(circle at 50% 0%, #FFE66D 0%, #FFD93B 100%);
+      background-image: radial-gradient(circle at 50% 0%, var(--bg-yellow-light) 0%, var(--bg-yellow) 100%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -51,116 +67,46 @@
       position: relative;
       width: 100%;
       max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
       margin: 0 auto;
       padding-bottom: 2rem;
+      padding-top: 3rem; /* Space for audio button */
     }
 
     .top-audio-btn {
       position: absolute;
-      top: 0.85rem;
-      right: 0.85rem;
+      top: 0;
+      right: 0;
       z-index: 50;
     }
 
-    /* Header Bar */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0.75rem 1.25rem;
-      background: #FFFFFF;
-      border: 4px solid #000000;
-      border-radius: var(--radius-lg);
-      box-shadow: 6px 6px 0px 0px #000000;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 1.35rem;
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      color: #000000;
-      text-transform: uppercase;
-    }
-
-    .brand-icon {
-      font-size: 1.6rem;
-    }
-
+    /* Buttons */
     .audio-btn {
       background: var(--accent-teal);
-      border: 3px solid #000000;
-      color: #000000;
-      width: 42px;
-      height: 42px;
+      border: 3px solid var(--border-color);
+      color: var(--text-main);
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 1.25rem;
-      box-shadow: 3px 3px 0px 0px #000000;
+      font-size: 1.35rem;
+      box-shadow: var(--shadow-base);
       transition: all 0.15s ease;
     }
 
     .audio-btn:active {
       transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px 0px #000000;
+      box-shadow: var(--shadow-active);
     }
 
-    /* Common Card Styles */
-    .card {
-      background: var(--bg-card);
-      border: 4px solid #000000;
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-card);
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    @keyframes popIn {
-      from { opacity: 0; transform: translateY(12px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .card-title {
-      font-size: 1.5rem;
-      font-weight: 900;
-      text-align: center;
-      color: #000000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
-    }
-
-    .card-subtitle {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-align: center;
-      line-height: 1.4;
-      margin-top: -0.5rem;
-    }
-
-    /* Controls & Buttons */
     .btn {
       width: 100%;
       min-height: 54px;
       padding: 0.85rem 1.25rem;
       border-radius: var(--radius-md);
-      border: 3px solid #000000;
+      border: 3px solid var(--border-color);
       font-size: 1.1rem;
       font-weight: 900;
       cursor: pointer;
@@ -170,119 +116,154 @@
       gap: 0.5rem;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease;
+      transition: all 0.15s ease;
       white-space: nowrap;
-      box-shadow: var(--shadow-btn);
+      box-shadow: var(--shadow-base);
     }
 
-    .btn:hover {
+    .btn:hover:not(:disabled) {
       transform: translate(-2px, -2px);
-      box-shadow: var(--shadow-btn-hover);
+      box-shadow: var(--shadow-hover);
     }
 
-    .btn:active {
+    .btn:active:not(:disabled) {
       transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0px 0px #000000;
+      box-shadow: var(--shadow-active);
     }
 
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      transform: none !important;
-      box-shadow: var(--shadow-btn) !important;
+      filter: grayscale(0.5);
     }
 
-    .btn-primary {
-      background: var(--accent-coral);
-      color: #000000;
+    .btn-primary { background: var(--accent-coral); color: var(--text-main); }
+    .btn-secondary { background: var(--bg-card); color: var(--text-main); }
+    .btn-success { background: var(--accent-teal); color: var(--text-main); }
+    .btn-warning { background: var(--accent-yellow); color: var(--text-main); }
+    .btn-danger { background: var(--accent-danger); color: var(--text-light); }
+
+    /* Screen Management & Animation */
+    .screen-card {
+      background: var(--bg-card);
+      border: 4px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 1.5rem;
+      box-shadow: var(--shadow-card);
+      display: none;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
-    .btn-secondary {
-      background: #FFFFFF;
-      color: #000000;
+    .screen-card.active {
+      display: flex;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    .btn-success {
-      background: var(--accent-teal);
-      color: #000000;
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(15px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    .btn-warning {
-      background: var(--accent-yellow);
-      color: #000000;
+    /* Typography & Structural Utilities */
+    .card-title {
+      font-size: 1.75rem;
+      font-weight: 900;
+      text-align: center;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
     }
 
-    .btn-danger {
-      background: #FF4757;
-      color: #FFFFFF;
+    .card-subtitle {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+      margin-top: -0.75rem;
+    }
+
+    .section-label {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .info-box {
+      background: var(--bg-info);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-base);
+      text-align: center;
+    }
+
+    .flex-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
     }
 
     /* Player Counter Grid */
     .counter-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #FFE66D;
-      border: 3px solid #000000;
+      background: var(--bg-yellow-light);
+      border: 3px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 0.85rem 1rem;
-      box-shadow: 4px 4px 0px 0px #000000;
+      padding: 0.85rem 1.25rem;
+      box-shadow: var(--shadow-base);
     }
 
     .counter-label {
       font-weight: 800;
-      color: #000000;
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
 
     .counter-controls {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 1rem;
     }
 
     .counter-btn {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background: #FFFFFF;
-      border: 3px solid #000000;
-      color: #000000;
+      background: var(--bg-card);
+      border: 3px solid var(--border-color);
       font-size: 1.35rem;
       font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       cursor: pointer;
-      box-shadow: 3px 3px 0px 0px #000000;
+      box-shadow: 3px 3px 0px 0px var(--border-color);
       transition: all 0.1s ease;
     }
 
-    .counter-btn:active {
+    .counter-btn:active:not(:disabled) {
       transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px 0px #000000;
-    }
-
-    .counter-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none;
+      box-shadow: 1px 1px 0px 0px var(--border-color);
     }
 
     .counter-val {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 900;
-      width: 28px;
+      width: 32px;
       text-align: center;
-      color: #000000;
     }
 
-    /* Player Name Inputs */
+    /* Inputs */
     .player-inputs {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      max-height: 220px;
+      gap: 0.75rem;
+      max-height: 240px;
       overflow-y: auto;
       padding-right: 0.25rem;
     }
@@ -290,490 +271,284 @@
     .input-group {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      background: #F8FAFC;
-      border: 3px solid #000000;
+      gap: 0.75rem;
+      background: var(--bg-surface);
+      border: 3px solid var(--border-color);
       border-radius: var(--radius-sm);
-      padding: 0.45rem 0.75rem;
-      box-shadow: 3px 3px 0px 0px #000000;
+      padding: 0.6rem 1rem;
+      box-shadow: 3px 3px 0px 0px var(--border-color);
+      transition: background-color 0.2s;
+    }
+    
+    .input-group:focus-within {
+      background: var(--bg-card);
     }
 
-    .input-avatar {
-      font-size: 1.2rem;
-    }
-
+    .input-avatar { font-size: 1.3rem; }
+    
     .input-field {
       width: 100%;
       background: transparent;
       border: none;
-      color: #000000;
-      font-size: 1rem;
+      color: var(--text-main);
+      font-size: 1.05rem;
       font-weight: 800;
       outline: none;
     }
+    .input-field::placeholder { color: #94A3B8; font-weight: 600; }
 
-    .input-field::placeholder {
-      color: #94A3B8;
-      font-weight: 600;
-    }
-
-    /* Category Selection */
-    .category-grid {
+    /* Selection Grids */
+    .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 0.75rem;
     }
 
-    /* Game Mode Selection */
-    .mode-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
+    .grid-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
     }
 
-    .mode-card {
-      background: #FFFFFF;
-      border: 3px solid #000000;
+    .selectable-card {
+      background: var(--bg-card);
+      border: 3px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 0.75rem 0.85rem;
+      padding: 0.85rem;
       cursor: pointer;
       transition: all 0.15s ease;
-      box-shadow: 4px 4px 0px 0px #000000;
+      box-shadow: var(--shadow-base);
     }
 
-    .mode-card:hover {
+    .selectable-card:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px 0px #000000;
-      background: #FFF9D2;
+      box-shadow: var(--shadow-hover);
+      background: var(--bg-info);
     }
 
-    .mode-card.selected {
-      background: #C7D2FE;
-      box-shadow: 5px 5px 0px 0px #000000;
+    .selectable-card.selected {
+      background: var(--accent-purple);
+      border-width: 3px;
     }
+    
+    .category-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .category-card.selected { background: var(--accent-teal); }
+    .category-icon { font-size: 1.8rem; }
+    .category-name { font-size: 0.95rem; font-weight: 800; }
 
-    .mode-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.25rem;
+    .mode-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+    .mode-icon { font-size: 1.3rem; }
+    .mode-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; }
+    .mode-desc { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); line-height: 1.35; }
+
+    .toggle-card {
+      background: var(--accent-purple);
+      padding: 0.85rem 1.25rem;
     }
+    .toggle-card[data-active="false"] { background: var(--bg-card); }
 
-    .mode-icon {
-      font-size: 1.3rem;
-    }
-
-    .mode-title {
-      font-size: 0.95rem;
-      font-weight: 900;
-      color: #000000;
-      text-transform: uppercase;
-    }
-
-    .mode-desc {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #334155;
-      line-height: 1.35;
-    }
-
-    .category-card {
-      background: #FFFFFF;
-      border: 3px solid #000000;
-      border-radius: var(--radius-md);
-      padding: 0.85rem 0.6rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.35rem;
-      box-shadow: 4px 4px 0px 0px #000000;
-    }
-
-    .category-card:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px 0px #000000;
-      background: #FFF9D2;
-    }
-
-    .category-card.selected {
-      background: var(--accent-teal);
-      box-shadow: 5px 5px 0px 0px #000000;
-    }
-
-    .category-icon {
-      font-size: 1.6rem;
-    }
-
-    .category-name {
-      font-size: 0.9rem;
-      font-weight: 800;
-      color: #000000;
-    }
-
-    /* Shield / Privacy Screen */
+    /* Special Sections (Shield, Secret) */
     .shield-box {
       text-align: center;
-      padding: 2.25rem 1.25rem;
+      padding: 2.5rem 1.25rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 1.25rem;
-      background: #FFE66D;
-      border: 4px solid #000000;
+      background: var(--bg-yellow-light);
+      border: 4px solid var(--border-color);
       border-radius: var(--radius-lg);
-      box-shadow: 6px 6px 0px 0px #000000;
+      box-shadow: var(--shadow-hover);
     }
-
-    .shield-icon {
-      font-size: 4.5rem;
-      animation: pulse 2s infinite ease-in-out;
-    }
-
+    .shield-icon { font-size: 5rem; animation: pulse 2s infinite ease-in-out; }
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.1); }
     }
-
     .player-target-badge {
       font-size: 2rem;
       font-weight: 900;
-      color: #000000;
-      background: #FFFFFF;
-      padding: 0.6rem 1.5rem;
+      background: var(--bg-card);
+      padding: 0.75rem 2rem;
       border-radius: 999px;
-      border: 3px solid #000000;
-      box-shadow: 4px 4px 0px 0px #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-base);
       text-transform: uppercase;
     }
 
-    /* Secret Reveal Box */
     .secret-box {
       border-radius: var(--radius-lg);
-      padding: 2rem 1.25rem;
+      padding: 2.5rem 1.5rem;
       text-align: center;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
-      position: relative;
-      overflow: hidden;
-      border: 4px solid #000000;
-      box-shadow: 8px 8px 0px 0px #000000;
+      border: 4px solid var(--border-color);
+      box-shadow: var(--shadow-card);
     }
-
-    .secret-box.insider {
-      background: var(--accent-teal);
-    }
-
-    .secret-box.imposter {
-      background: var(--accent-coral);
-    }
+    .secret-box.insider { background: var(--accent-teal); }
+    .secret-box.imposter { background: var(--accent-coral); }
 
     .role-badge {
       display: inline-block;
-      padding: 0.5rem 1.25rem;
+      padding: 0.6rem 1.5rem;
       border-radius: 999px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 900;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       margin: 0 auto;
-      border: 3px solid #000000;
-      box-shadow: 3px 3px 0px 0px #000000;
-      background: #FFFFFF;
-      color: #000000;
-    }
-
-    .category-label {
-      font-size: 1rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: 3px 3px 0px 0px var(--border-color);
+      background: var(--bg-card);
     }
 
     .secret-word-display {
-      font-size: 2.25rem;
+      font-size: 2.5rem;
       font-weight: 900;
-      color: #000000;
-      background: #FFFFFF;
-      padding: 1.1rem;
+      background: var(--bg-card);
+      padding: 1.25rem;
       border-radius: var(--radius-md);
-      border: 3px solid #000000;
-      box-shadow: 4px 4px 0px 0px #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-base);
       line-height: 1.2;
+      color: var(--text-main);
     }
 
     .tip-box {
-      font-size: 0.92rem;
+      font-size: 1rem;
       font-weight: 700;
-      line-height: 1.4;
-      color: #000000;
-      background: rgba(255, 255, 255, 0.85);
-      padding: 0.85rem;
+      line-height: 1.5;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1rem;
       border-radius: var(--radius-sm);
-      border: 2px solid #000000;
+      border: 3px solid var(--border-color);
     }
 
-    /* Discussion Phase */
+    /* Discussion Phase & Timer */
     .timer-display {
-      font-size: 2.75rem;
+      font-size: 3rem;
       font-weight: 900;
-      color: #000000;
       text-align: center;
       font-variant-numeric: tabular-nums;
-      margin: 0.25rem 0;
+      margin: 0.5rem 0;
     }
 
     .turn-order-list {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      background: #FFF9D2;
-      padding: 0.85rem;
+      gap: 0.6rem;
+      background: var(--bg-info);
+      padding: 1rem;
       border-radius: var(--radius-md);
-      border: 3px solid #000000;
-      box-shadow: 4px 4px 0px 0px #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-base);
     }
 
     .turn-item {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 1rem;
+      gap: 0.75rem;
+      font-size: 1.1rem;
       font-weight: 800;
-      color: #000000;
     }
 
     .turn-num {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: #000000;
-      font-size: 0.85rem;
+      background: var(--border-color);
+      font-size: 0.95rem;
       font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #FFFFFF;
+      color: var(--bg-card);
     }
 
-    /* Voting Grid */
-    .voting-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
-
-    .player-vote-card {
-      background: #FFFFFF;
-      border: 3px solid #000000;
-      border-radius: var(--radius-md);
-      padding: 1rem 0.75rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 4px 4px 0px 0px #000000;
-    }
-
-    .player-vote-card:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px 0px #000000;
-    }
-
-    .player-vote-card.selected {
-      border: 4px solid #000000;
-      background: var(--accent-coral);
-      box-shadow: 6px 6px 0px 0px #000000;
-    }
-
-    .vote-avatar {
-      font-size: 2.2rem;
-    }
-
-    .vote-name {
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: #000000;
-    }
-
-    /* Modal Sheet for Topic Words */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      z-index: 100;
-      animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .modal-content {
-      background: #FFD93B;
-      border: 4px solid #000000;
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 460px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.1rem;
-      max-height: 85vh;
-      overflow-y: auto;
-      box-shadow: 12px 12px 0px 0px #000000;
-    }
-
-    .words-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.6rem;
-    }
-
-    .word-chip {
-      background: #FFFFFF;
-      border: 3px solid #000000;
-      border-radius: var(--radius-sm);
-      padding: 0.7rem 0.5rem;
-      text-align: center;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #000000;
-      cursor: pointer;
-      box-shadow: 3px 3px 0px 0px #000000;
-      transition: all 0.15s ease;
-    }
-
-    .word-chip:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0px 0px #000000;
-      background: #4ECDC4;
-    }
-
-    /* Resolution Stats */
+    /* Resolution Phase */
     .result-banner {
       font-size: 2.25rem;
       font-weight: 900;
       text-align: center;
-      color: #000000;
       text-transform: uppercase;
       letter-spacing: -0.02em;
-    }
-
-    .result-banner.win {
-      color: #000000;
-      background: var(--accent-teal);
-      padding: 0.75rem;
-      border: 4px solid #000000;
+      padding: 1rem;
+      border: 4px solid var(--border-color);
       border-radius: var(--radius-md);
-      box-shadow: 5px 5px 0px 0px #000000;
+      box-shadow: var(--shadow-hover);
     }
-
-    .result-banner.loss {
-      color: #000000;
-      background: var(--accent-coral);
-      padding: 0.75rem;
-      border: 4px solid #000000;
-      border-radius: var(--radius-md);
-      box-shadow: 5px 5px 0px 0px #000000;
-    }
+    .result-banner.win { background: var(--accent-teal); }
+    .result-banner.loss { background: var(--accent-coral); }
 
     .result-detail-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.85rem;
-      background: #FFF9D2;
+      padding: 1rem;
+      background: var(--bg-info);
       border-radius: var(--radius-sm);
-      border: 3px solid #000000;
-      box-shadow: 3px 3px 0px 0px #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: 3px 3px 0px 0px var(--border-color);
     }
+    .result-detail-label { font-size: 1rem; font-weight: 800; }
+    .result-detail-value { font-size: 1.15rem; font-weight: 900; }
 
-    .result-detail-label {
-      color: #000000;
-      font-size: 0.95rem;
-      font-weight: 800;
-    }
-
-    .result-detail-value {
-      font-weight: 900;
-      color: #000000;
-      font-size: 1.05rem;
-    }
-
-    .hidden {
-      display: none !important;
-    }
   </style>
 </head>
 <body>
 
-  <div id="app">
+  <main id="app">
     <!-- Floating Audio Toggle -->
     <div class="top-audio-btn">
-      <button class="audio-btn" id="audioToggleBtn" title="Toggle Sound">🔊</button>
+      <button class="audio-btn" id="audioToggleBtn" title="Toggle Sound" aria-label="Toggle Audio">🔊</button>
     </div>
 
     <!-- SCREEN 1: SETUP -->
-    <div id="screenSetup" class="card">
-      <div class="card-title">🥸 Camo Dude</div>
+    <div id="screenSetup" class="screen-card active">
+      <h1 class="card-title">🥸 Camo Dude</h1>
 
       <!-- Player Count -->
-      <div class="counter-row">
+      <div class="counter-row flex-row">
         <span class="counter-label">Players</span>
         <div class="counter-controls">
-          <button class="counter-btn" id="btnMinusPlayers">-</button>
+          <button class="counter-btn" id="btnMinusPlayers" aria-label="Decrease players">-</button>
           <span class="counter-val" id="playerCountVal">4</span>
-          <button class="counter-btn" id="btnPlusPlayers">+</button>
+          <button class="counter-btn" id="btnPlusPlayers" aria-label="Increase players">+</button>
         </div>
       </div>
 
       <!-- Player Names -->
       <div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;"> Names</div>
+        <div class="section-label">Names</div>
         <div class="player-inputs" id="playerInputsContainer"></div>
       </div>
 
       <!-- Game Mode Selection -->
       <div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;">Game Mode</div>
-        <div class="mode-grid" id="modeGrid">
-          <div class="mode-card selected" data-mode="hint">
+        <div class="section-label">Game Mode</div>
+        <div class="grid-1" id="modeGrid">
+          <div class="selectable-card selected" data-mode="hint">
             <div class="mode-header">
-              <span class="mode-icon">💡</span>
-              <span class="mode-title">Hint Mode</span>
+              <span class="mode-icon">💡</span><span class="mode-title">Hint Mode</span>
             </div>
             <div class="mode-desc">Camo Dude gets a hint.</div>
           </div>
-          <div class="mode-card" data-mode="no_hint">
+          <div class="selectable-card" data-mode="no_hint">
             <div class="mode-header">
-              <span class="mode-icon">❓</span>
-              <span class="mode-title">No Hint Mode</span>
+              <span class="mode-icon">❓</span><span class="mode-title">No Hint Mode</span>
             </div>
             <div class="mode-desc">Camo Dude hard mode.</div>
           </div>
-          <div class="mode-card" data-mode="decoy">
+          <div class="selectable-card" data-mode="decoy">
             <div class="mode-header">
-              <span class="mode-icon">🎭</span>
-              <span class="mode-title">Decoy Word Mode</span>
+              <span class="mode-icon">🎭</span><span class="mode-title">Decoy Word Mode</span>
             </div>
             <div class="mode-desc">Camo Dude doesn't know they are imposter, gets a fake word!</div>
           </div>
-          <div class="mode-card" data-mode="double_trouble">
+          <div class="selectable-card" data-mode="double_trouble">
             <div class="mode-header">
-              <span class="mode-icon">🎪</span>
-              <span class="mode-title">Double Agent Mode</span>
+              <span class="mode-icon">🎪</span><span class="mode-title">Double Agent Mode</span>
             </div>
             <div class="mode-desc">1 Camo Dude (No Hint) + 1 Dunce (Fake Word)!</div>
           </div>
@@ -782,72 +557,69 @@
 
       <!-- Turn Order Setting -->
       <div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;">Turn Order Setting</div>
-        <div id="turnOrderToggleCard" style="background: #C7D2FE; border: 3px solid #000000; border-radius: var(--radius-md); padding: 0.75rem 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; box-shadow: 4px 4px 0px 0px #000000; transition: all 0.15s ease;">
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.3rem;">🎲</span>
+        <div class="section-label">Turn Order Setting</div>
+        <div id="turnOrderToggleCard" class="selectable-card toggle-card flex-row" data-active="true">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.5rem;">🎲</span>
             <div>
-              <div style="font-size: 0.95rem; font-weight: 900; color: #000000; text-transform: uppercase;">Randomize Turn Order</div>
-              <div style="font-size: 0.8rem; font-weight: 700; color: #334155;">Shuffle Order</div>
+              <div class="mode-title">Randomize Order</div>
+              <div class="mode-desc">Shuffle starting turn</div>
             </div>
           </div>
-          <div style="font-size: 1.4rem;" id="turnOrderBadge">✅</div>
+          <div style="font-size: 1.5rem;" id="turnOrderBadge">✅</div>
         </div>
       </div>
 
       <!-- Category Selection -->
       <div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 0.5rem; text-transform: uppercase;">Select Topic Category</div>
-        <div class="category-grid" id="categoryGrid"></div>
+        <div class="section-label">Select Topic Category</div>
+        <div class="grid-2" id="categoryGrid"></div>
       </div>
 
-      <button class="btn btn-primary" id="btnStartGame">Start</button>
+      <button class="btn btn-primary" id="btnStartGame">Start Game</button>
     </div>
 
     <!-- SCREEN 2: PASS & PLAY SHIELD -->
-    <div id="screenShield" class="card hidden">
+    <div id="screenShield" class="screen-card">
       <div class="shield-box">
         <div class="shield-icon">🙈</div>
-        <div style="font-size: 0.95rem; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 900;">Secret</div>
-        <div style="font-size: 1.15rem; color: #000000; font-weight: 800;">Pass the device to:</div>
+        <div class="section-label">Secret</div>
+        <div style="font-size: 1.25rem; font-weight: 800;">Pass the device to:</div>
         <div class="player-target-badge" id="shieldPlayerName">Player 1</div>
-        <div style="font-size: 0.9rem; color: #000000; font-weight: 700; max-width: 280px; line-height: 1.4;">
-        </div>
         <button class="btn btn-primary" id="btnRevealSecret">Reveal</button>
       </div>
     </div>
 
     <!-- SCREEN 3: SECRET REVEAL -->
-    <div id="screenReveal" class="card hidden">
+    <div id="screenReveal" class="screen-card">
       <div class="secret-box" id="secretBox">
         <div class="role-badge" id="roleBadge">INSIDER</div>
-        <div class="category-label" id="revealCategoryLabel">Topic Category</div>
+        <div class="section-label" id="revealCategoryLabel">Topic Category</div>
         <div class="secret-word-display" id="secretWordDisplay">Elephant</div>
         <div class="tip-box" id="revealTipBox">
           Say one word related to this topic.
         </div>
       </div>
-
       <button class="btn btn-secondary" id="btnHideAndContinue">🔒 Hide & Next Player</button>
     </div>
 
     <!-- SCREEN 4: DISCUSSION PHASE -->
-    <div id="screenDiscussion" class="card hidden">
-      <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem;">
-        <div class="card-title" style="margin-bottom: 0;">🗣️ Discussion Phase</div>
-        <button class="btn btn-secondary" id="btnReshuffleTurnOrder" style="min-height: 38px; padding: 0.3rem 0.85rem; font-size: 0.85rem; width: auto;">Reshuffle</button>
+    <div id="screenDiscussion" class="screen-card">
+      <div class="flex-row">
+        <h2 class="card-title">🗣️ Discussion</h2>
+        <button class="btn btn-secondary" id="btnReshuffleTurnOrder" style="padding: 0.4rem 0.75rem; font-size: 0.9rem; min-height: 40px; width: auto;">Shuffle</button>
       </div>
-      <div class="card-subtitle">Going in order below, each player says OUT LOUD exactly ONE word related to the secret word!</div>
+      <div class="card-subtitle">Going in order below, say OUT LOUD exactly ONE word related to the secret!</div>
 
       <div class="turn-order-list" id="turnOrderList"></div>
 
       <!-- Optional Timer -->
-      <div style="background: #FFF9D2; padding: 1rem; border-radius: var(--radius-md); border: 3px solid #000000; box-shadow: 4px 4px 0px 0px #000000; text-align: center;">
-        <div style="font-size: 0.85rem; text-transform: uppercase; color: #000000; font-weight: 900; letter-spacing: 0.05em;">Discussion Timer</div>
+      <div class="info-box">
+        <div class="section-label">Discussion Timer</div>
         <div class="timer-display" id="timerDisplay">01:00</div>
-        <div style="display: flex; gap: 0.5rem; justify-content: center;">
-          <button class="btn btn-secondary" id="btnStartTimer" style="min-height: 42px; font-size: 0.9rem; width: auto; padding: 0.4rem 1.25rem;">▶️ Start</button>
-          <button class="btn btn-secondary" id="btnResetTimer" style="min-height: 42px; font-size: 0.9rem; width: auto; padding: 0.4rem 1.25rem;">🔄 Reset</button>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.5rem;">
+          <button class="btn btn-secondary" id="btnStartTimer" style="min-height: 48px; font-size: 1rem;">▶️ Start</button>
+          <button class="btn btn-secondary" id="btnResetTimer" style="min-height: 48px; font-size: 1rem;">🔄 Reset</button>
         </div>
       </div>
 
@@ -855,63 +627,81 @@
     </div>
 
     <!-- SCREEN 5: VOTING -->
-    <div id="screenVoting" class="card hidden">
-      <div class="card-title">🔎 Who is the Camo Dude?</div>
-      <div class="card-subtitle">Discuss as a family and tap the player you suspect of blending in!</div>
+    <div id="screenVoting" class="screen-card">
+      <h2 class="card-title" id="votingTitle">🔎 Who is Camo Dude?</h2>
+      <div class="card-subtitle" id="votingSubtitle">Discuss and tap the player you suspect!</div>
 
-      <div class="voting-grid" id="votingGrid"></div>
+      <div class="grid-2" id="votingGrid"></div>
 
       <button class="btn btn-danger" id="btnConfirmVote" disabled>⚖️ Confirm Accusation</button>
     </div>
 
-    <!-- SCREEN 6: CAMO DUDE GUESS (LAST CHANCE) -->
-    <div id="screenImposterGuess" class="card hidden">
-      <div class="card-title" style="color: #000000;">🥸 Caught, ya dingus!</div>
-      <div class="card-subtitle" style="color: #000000; font-weight: 700;">
-        <strong id="accusedImposterName">Alex</strong> was caught! Speak your blind guess OUT LOUD to the group now!
+    <!-- SCREEN 6: CAMO DUDE GUESS -->
+    <div id="screenImposterGuess" class="screen-card">
+      <h2 class="card-title" id="imposterGuessTitle">🥸 Caught, ya dingus!</h2>
+      <div class="card-subtitle">
+        <strong id="accusedImposterName">Alex</strong> was caught! Speak your blind guess OUT LOUD to the group!
       </div>
 
-      <div style="font-size: 0.95rem; font-weight: 900; color: #000000; text-align: center; text-transform: uppercase;" id="imposterCategoryHeader">Category: Animals</div>
+      <div class="section-label" style="text-align: center;" id="imposterCategoryHeader">Category: Animals</div>
 
-      <div id="imposterGuessStep1" style="display: flex; flex-direction: column; gap: 1rem; width: 100%;">
-        <div style="background: #FFF9D2; padding: 1rem; border-radius: var(--radius-md); border: 3px solid #000000; text-align: center; font-weight: 800; font-size: 0.95rem; box-shadow: 4px 4px 0px 0px #000000;">
+      <div id="imposterGuessStep1" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div class="info-box" id="imposterGuessTip">
           🔊 Camo Dude: Last chance to guess the secret.
         </div>
-        <button class="btn btn-primary" id="btnRevealWordForCheck">Reveal</button>
+        <button class="btn btn-primary" id="btnRevealWordForCheck">Reveal Secret Word</button>
       </div>
 
-      <div id="imposterGuessStep2" class="hidden" style="display: flex; flex-direction: column; gap: 1.25rem; align-items: center; width: 100%;">
-        <div style="background: #FFFFFF; border: 3px solid #000000; border-radius: var(--radius-md); padding: 1.25rem; width: 100%; text-align: center; box-shadow: 4px 4px 0px 0px #000000;">
-          <div style="font-size: 0.85rem; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">The Actual Secret Word Is:</div>
-          <div class="secret-word-display" id="secretWordCheckDisplay" style="font-size: 2rem; font-weight: 900; background: var(--accent-yellow); border: 3px solid #000000; box-shadow: 4px 4px 0px 0px #000000; color: #000000;">ELEPHANT</div>
+      <div id="imposterGuessStep2" style="display: none; flex-direction: column; gap: 1.5rem;">
+        <div class="info-box" style="background: var(--bg-card);">
+          <div class="section-label">The Actual Secret Word Was:</div>
+          <div class="secret-word-display" id="secretWordCheckDisplay" style="background: var(--accent-yellow);">ELEPHANT</div>
         </div>
-
-        <div style="font-size: 1.05rem; font-weight: 900; color: #000000; text-align: center;">
+        <div style="font-size: 1.15rem; font-weight: 900; text-align: center;">
           Did <span id="accusedImposterName2">Alex</span> guess it correctly?
         </div>
-
-        <div style="display: flex; gap: 0.75rem; width: 100%;">
-          <button class="btn btn-success" id="btnGuessCorrect" style="flex: 1;">Yes</button>
-          <button class="btn btn-danger" id="btnGuessWrong" style="flex: 1;">No</button>
+        <div style="display: flex; gap: 1rem;">
+          <button class="btn btn-success" id="btnGuessCorrect">Yes</button>
+          <button class="btn btn-danger" id="btnGuessWrong">No</button>
         </div>
       </div>
     </div>
 
     <!-- SCREEN 7: RESOLUTION -->
-    <div id="screenResolution" class="card hidden">
+    <div id="screenResolution" class="screen-card">
       <div class="result-banner" id="resultBanner">INSIDERS WIN! 🎉</div>
-
-      <div id="resolutionDetailsContainer" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
-
-      <button class="btn btn-primary" id="btnPlayAgainSame">Play Again</button>
-      <button class="btn btn-secondary" id="btnNewGame">Game Setup</button>
+      <div id="resolutionDetailsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+      
+      <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+        <button class="btn btn-primary" id="btnPlayAgainSame">Play Again (Same Players)</button>
+        <button class="btn btn-secondary" id="btnNewGame">Main Menu</button>
+      </div>
     </div>
 
-  </div>
+  </main>
 
   <script>
     // --- 1. GAME DATA STRUCTURE ---
-    const getCategories = () => window.CATEGORIES || [];
+    // Fallback data in case categories.js is missing or empty
+    const FALLBACK_CATEGORIES = [
+      { 
+        id: 'animals', name: 'Animals', icon: '🦁', 
+        words: [
+          { secret: 'Elephant', hint: 'Has a trunk' }, 
+          { secret: 'Lion', hint: 'King of jungle' },
+          { secret: 'Penguin', hint: 'Tuxedo bird' }
+        ] 
+      },
+      { 
+        id: 'food', name: 'Food', icon: '🍔', 
+        words: [
+          { secret: 'Pizza', hint: 'Italian slices' }, 
+          { secret: 'Sushi', hint: 'Raw fish' },
+          { secret: 'Taco', hint: 'Shell and meat' }
+        ] 
+      }
+    ];
+    const getCategories = () => (window.CATEGORIES && window.CATEGORIES.length > 0) ? window.CATEGORIES : FALLBACK_CATEGORIES;
 
     const AVATARS = ["🦊", "🐼", "🐯", "🦁", "🦄", "🐨", "🐸", "🦉"];
 
@@ -926,9 +716,9 @@
       currentCategory: null,
       secretWordObj: null,
       decoyWordObj: null,
-      imposterIndex: -1, // Camo Dude
-      dunceIndex: -1,    // Dunce (Fake Word)
-      caughtRole: null,  // 'camo' | 'dunce'
+      imposterIndex: -1, 
+      dunceIndex: -1,    
+      caughtRole: null,  
       currentTurnIndex: 0,
       votedPlayerIndex: -1,
       timerSeconds: 60,
@@ -936,17 +726,13 @@
       soundEnabled: true
     };
 
-    // --- 3. WEB AUDIO SYNTHESIZER (No external assets) ---
+    // --- 3. WEB AUDIO SYNTHESIZER ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new AudioContext();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
 
     function playSound(type) {
@@ -954,10 +740,10 @@
       try {
         initAudio();
         const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
         if (type === 'click') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(600, now);
           osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
@@ -968,8 +754,6 @@
           osc.start(now);
           osc.stop(now + 0.05);
         } else if (type === 'reveal') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(300, now);
           osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
@@ -982,20 +766,18 @@
         } else if (type === 'win') {
           const notes = [440, 554.37, 659.25, 880];
           notes.forEach((freq, idx) => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, now + idx * 0.1);
-            gain.gain.setValueAtTime(0.2, now + idx * 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now + idx * 0.1);
-            osc.stop(now + idx * 0.1 + 0.25);
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, now + idx * 0.1);
+            g.gain.setValueAtTime(0.2, now + idx * 0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.start(now + idx * 0.1);
+            o.stop(now + idx * 0.1 + 0.25);
           });
         } else if (type === 'loss') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(220, now);
           osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
@@ -1006,8 +788,6 @@
           osc.start(now);
           osc.stop(now + 0.3);
         } else if (type === 'tick') {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(800, now);
           gain.gain.setValueAtTime(0.05, now);
@@ -1018,11 +798,11 @@
           osc.stop(now + 0.03);
         }
       } catch (e) {
-        console.log("Audio playback notice:", e);
+        console.log("Audio playback error:", e);
       }
     }
 
-    // --- 4. DOM ELEMENTS ---
+    // --- 4. DOM ELEMENTS & NAVIGATION ---
     const screens = {
       setup: document.getElementById('screenSetup'),
       shield: document.getElementById('screenShield'),
@@ -1033,7 +813,18 @@
       resolution: document.getElementById('screenResolution')
     };
 
-    // --- 5. INITIALIZATION & UI RENDERING ---
+    function showScreen(screenKey) {
+      Object.keys(screens).forEach(key => {
+        if (key === screenKey) {
+          screens[key].classList.add('active');
+        } else {
+          screens[key].classList.remove('active');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- 5. SETUP & RENDER FUNCTIONS ---
     function initUI() {
       renderPlayerInputs();
       renderModeGrid();
@@ -1042,35 +833,22 @@
     }
 
     function renderModeGrid() {
-      const cards = document.querySelectorAll('#modeGrid .mode-card');
+      const cards = document.querySelectorAll('#modeGrid .selectable-card');
       cards.forEach(card => {
         const mode = card.getAttribute('data-mode');
-        if (mode === state.gameMode) {
-          card.classList.add('selected');
-        } else {
-          card.classList.remove('selected');
-        }
+        card.classList.toggle('selected', mode === state.gameMode);
+        
         card.onclick = () => {
           playSound('click');
           state.gameMode = mode;
           if (state.gameMode === 'double_trouble' && state.playerCount < 4) {
             state.playerCount = 4;
+            while(state.playerNames.length < 4) state.playerNames.push(`Player ${state.playerNames.length + 1}`);
             renderPlayerInputs();
           }
           renderModeGrid();
         };
       });
-    }
-
-    function showScreen(screenKey) {
-      Object.keys(screens).forEach(key => {
-        if (key === screenKey) {
-          screens[key].classList.remove('hidden');
-        } else {
-          screens[key].classList.add('hidden');
-        }
-      });
-      window.scrollTo(0, 0);
     }
 
     function renderPlayerInputs() {
@@ -1089,12 +867,13 @@
         `;
 
         const input = group.querySelector('input');
-        input.addEventListener('input', (e) => {
+        input.addEventListener('change', (e) => {
           state.playerNames[i] = e.target.value.trim() || `Player ${i + 1}`;
         });
 
         container.appendChild(group);
       }
+      
       document.getElementById('playerCountVal').textContent = state.playerCount;
       const minPlayers = (state.gameMode === 'double_trouble') ? 4 : 3;
       document.getElementById('btnMinusPlayers').disabled = state.playerCount <= minPlayers;
@@ -1104,16 +883,12 @@
     function renderCategoryGrid() {
       const grid = document.getElementById('categoryGrid');
       grid.innerHTML = '';
-
       const cats = getCategories();
 
-      // Add Random Option
+      // Random Option
       const randomCard = document.createElement('div');
-      randomCard.className = `category-card ${state.selectedCategoryId === 'random' ? 'selected' : ''}`;
-      randomCard.innerHTML = `
-        <span class="category-icon">🎲</span>
-        <span class="category-name">Random Category</span>
-      `;
+      randomCard.className = `selectable-card category-card ${state.selectedCategoryId === 'random' ? 'selected' : ''}`;
+      randomCard.innerHTML = `<span class="category-icon">🎲</span><span class="category-name">Random</span>`;
       randomCard.addEventListener('click', () => {
         playSound('click');
         state.selectedCategoryId = 'random';
@@ -1121,13 +896,11 @@
       });
       grid.appendChild(randomCard);
 
+      // Category Options
       cats.forEach(cat => {
         const card = document.createElement('div');
-        card.className = `category-card ${state.selectedCategoryId === cat.id ? 'selected' : ''}`;
-        card.innerHTML = `
-          <span class="category-icon">${cat.icon}</span>
-          <span class="category-name">${cat.name}</span>
-        `;
+        card.className = `selectable-card category-card ${state.selectedCategoryId === cat.id ? 'selected' : ''}`;
+        card.innerHTML = `<span class="category-icon">${cat.icon}</span><span class="category-name">${cat.name}</span>`;
         card.addEventListener('click', () => {
           playSound('click');
           state.selectedCategoryId = cat.id;
@@ -1137,56 +910,48 @@
       });
     }
 
-    // --- 6. GAME LOGIC & FLOW ---
+    // --- 6. GAME LOOP LOGIC ---
     function startGame() {
       playSound('click');
-
       const cats = getCategories();
 
-      // Select Category
+      // Ensure names array covers player count
+      for (let i = 0; i < state.playerCount; i++) {
+        const inputField = document.querySelector(`.input-field[data-index="${i}"]`);
+        state.playerNames[i] = inputField ? (inputField.value.trim() || `Player ${i + 1}`) : `Player ${i + 1}`;
+      }
+
+      // Assign Category & Words
       if (state.selectedCategoryId === 'random') {
-        const randIdx = Math.floor(Math.random() * cats.length);
-        state.currentCategory = cats[randIdx];
+        state.currentCategory = cats[Math.floor(Math.random() * cats.length)];
       } else {
         state.currentCategory = cats.find(c => c.id === state.selectedCategoryId) || cats[0];
       }
 
-      // Pick Secret Word for Insiders
       const wordIdx = Math.floor(Math.random() * state.currentCategory.words.length);
       state.secretWordObj = state.currentCategory.words[wordIdx];
-
-      // Reset caughtRole
       state.caughtRole = null;
 
-      // Assign Imposters and Decoy Words based on Mode
+      // Assign Roles
       if (state.gameMode === 'double_trouble') {
-        // Double Agent Mode: 1 Camo Dude (No Hint) + 1 Dunce (Decoy Word)
         state.imposterIndex = Math.floor(Math.random() * state.playerCount);
-        let dunceIdx = Math.floor(Math.random() * state.playerCount);
-        while (dunceIdx === state.imposterIndex) {
-          dunceIdx = Math.floor(Math.random() * state.playerCount);
-        }
-        state.dunceIndex = dunceIdx;
-
+        do { state.dunceIndex = Math.floor(Math.random() * state.playerCount); } 
+        while (state.dunceIndex === state.imposterIndex);
+        
         const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
-        const decoyIdx = Math.floor(Math.random() * otherWords.length);
-        state.decoyWordObj = otherWords[decoyIdx];
+        state.decoyWordObj = otherWords[Math.floor(Math.random() * otherWords.length)];
       } else if (state.gameMode === 'decoy') {
-        // Decoy Mode: 1 Camo Dude who receives Decoy Word
         state.imposterIndex = Math.floor(Math.random() * state.playerCount);
         state.dunceIndex = -1;
-
         const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
-        const decoyIdx = Math.floor(Math.random() * otherWords.length);
-        state.decoyWordObj = otherWords[decoyIdx];
+        state.decoyWordObj = otherWords[Math.floor(Math.random() * otherWords.length)];
       } else {
-        // Hint or No Hint Mode
         state.imposterIndex = Math.floor(Math.random() * state.playerCount);
         state.dunceIndex = -1;
         state.decoyWordObj = null;
       }
 
-      // Determine Turn Order
+      // Set Order
       let order = Array.from({ length: state.playerCount }, (_, i) => i);
       if (state.randomizeTurnOrder) {
         for (let i = order.length - 1; i > 0; i--) {
@@ -1197,19 +962,14 @@
       state.turnOrder = order;
       state.currentTurnIndex = 0;
 
-      // Reset timer
       resetTimer();
-
-      // Proceed to Pass-and-Play Loop
       setupTurnShield();
     }
 
-  function setupTurnShield() {
-    const pIdx = state.turnOrder[state.currentTurnIndex];
-    const currentPlayerName = state.playerNames[pIdx] || `Player ${pIdx + 1}`;
-    document.getElementById('shieldPlayerName').textContent = currentPlayerName;
-    showScreen('shield');
-  }
+    function setupTurnShield() {
+      const pIdx = state.turnOrder[state.currentTurnIndex];
+      document.getElementById('shieldPlayerName').textContent = state.playerNames[pIdx];
+      showScreen('shield');
     }
 
     function revealSecretRole() {
@@ -1220,73 +980,57 @@
 
       const secretBox = document.getElementById('secretBox');
       const roleBadge = document.getElementById('roleBadge');
-      const categoryLabel = document.getElementById('revealCategoryLabel');
       const wordDisplay = document.getElementById('secretWordDisplay');
       const tipBox = document.getElementById('revealTipBox');
-
-      categoryLabel.textContent = `Category: ${state.currentCategory.name}`;
+      
+      document.getElementById('revealCategoryLabel').textContent = `Category: ${state.currentCategory.name}`;
 
       if (state.gameMode === 'double_trouble') {
         if (isImposter) {
-          // Camo Dude in Double Agent Mode (No Hint)
           secretBox.className = 'secret-box imposter';
-          roleBadge.className = 'role-badge imposter';
           roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
           wordDisplay.textContent = '❓ NO HINT';
-          tipBox.textContent = "You are the CAMO DUDE with NO HINT! There is also a DUNCE with a fake word. Listen closely to everyone's clues to deduce the secret word!";
+          tipBox.textContent = "You have NO HINT! There is also a DUNCE with a fake word. Listen to clues to deduce the secret!";
         } else if (isDunce) {
-          // Dunce in Double Agent Mode (Gets Decoy Word, thinks they are Insider)
           secretBox.className = 'secret-box insider';
-          roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}". Don't be too obvious!`;
         } else {
-          // Insiders
           secretBox.className = 'secret-box insider';
-          roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.secretWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}". Don't be too obvious!`;
         }
       } else if (isImposter) {
         if (state.gameMode === 'decoy') {
-          // Decoy Mode: Camo Dude receives a decoy word and believes they are an Insider!
           secretBox.className = 'secret-box insider';
-          roleBadge.className = 'role-badge insider';
           roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
           wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}" during discussion. Don't be too obvious!`;
+          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}". Don't be too obvious!`;
         } else if (state.gameMode === 'no_hint') {
-          // No Hint Mode
           secretBox.className = 'secret-box imposter';
-          roleBadge.className = 'role-badge imposter';
           roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
           wordDisplay.textContent = '❓ NO HINT';
-          tipBox.textContent = "You are the CAMO DUDE with NO HINT! Listen closely to everyone's clues during discussion to deduce the secret word and blend in!";
+          tipBox.textContent = "Listen closely to everyone's clues during discussion to deduce the secret word and blend in!";
         } else {
-          // Hint Mode (Default)
           secretBox.className = 'secret-box imposter';
-          roleBadge.className = 'role-badge imposter';
           roleBadge.textContent = 'YOU ARE THE CAMO DUDE 🥸';
           wordDisplay.textContent = `Hint: "${state.secretWordObj.hint}"`;
-          tipBox.textContent = "You are the CAMO DUDE! Listen closely to other players' words during discussion to deduce the secret word and blend in!";
+          tipBox.textContent = "Use the hint and listen to other players to blend in!";
         }
       } else {
         secretBox.className = 'secret-box insider';
-        roleBadge.className = 'role-badge insider';
         roleBadge.textContent = 'YOU ARE AN INSIDER 🤫';
         wordDisplay.textContent = state.secretWordObj.secret;
-        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}" during discussion. Don't be too obvious!`;
+        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}". Don't be too obvious!`;
       }
-
       showScreen('reveal');
     }
 
     function advancePassAndPlay() {
       playSound('click');
       state.currentTurnIndex++;
-
       if (state.currentTurnIndex < state.playerCount) {
         setupTurnShield();
       } else {
@@ -1302,16 +1046,13 @@
     function renderTurnOrderList() {
       const turnList = document.getElementById('turnOrderList');
       turnList.innerHTML = '';
-
       state.turnOrder.forEach((pIdx, pos) => {
-        const name = state.playerNames[pIdx];
-        const avatar = AVATARS[pIdx % AVATARS.length];
         const item = document.createElement('div');
         item.className = 'turn-item';
         item.innerHTML = `
           <span class="turn-num">${pos + 1}</span>
-          <span style="font-size: 1.15rem; margin-right: 0.35rem;">${avatar}</span>
-          <span style="font-weight: 800; color: #000000;">${name}</span>
+          <span style="font-size: 1.3rem;">${AVATARS[pIdx % AVATARS.length]}</span>
+          <span>${state.playerNames[pIdx]}</span>
         `;
         turnList.appendChild(item);
       });
@@ -1323,36 +1064,30 @@
       const btnConfirm = document.getElementById('btnConfirmVote');
       btnConfirm.disabled = true;
 
-      // Dynamic voting screen text based on game mode
-      const votingTitle = document.querySelector('#screenVoting .card-title');
-      const votingSubtitle = document.querySelector('#screenVoting .card-subtitle');
+      const vTitle = document.getElementById('votingTitle');
+      const vSub = document.getElementById('votingSubtitle');
       if (state.gameMode === 'double_trouble') {
-        if (votingTitle) votingTitle.textContent = '🔎 Catch an Imposter!';
-        if (votingSubtitle) votingSubtitle.textContent = 'There are 2 imposters: 1 Camo Dude (No Hint) & 1 Dunce (Fake Word)! Tap the player you suspect!';
+        vTitle.textContent = '🔎 Catch an Imposter!';
+        vSub.textContent = 'There are 2 imposters: Camo Dude & Dunce! Tap who you suspect.';
       } else if (state.gameMode === 'decoy') {
-        if (votingTitle) votingTitle.textContent = '🔎 Who has the Decoy Word?';
-        if (votingSubtitle) votingSubtitle.textContent = 'Discuss as a family and tap the player who seems to have a different secret word!';
+        vTitle.textContent = '🔎 Find the Decoy!';
+        vSub.textContent = 'Tap the player who seems to have a different secret word!';
       } else {
-        if (votingTitle) votingTitle.textContent = '🔎 Who is the Camo Dude?';
-        if (votingSubtitle) votingSubtitle.textContent = 'Discuss as a family and tap the player you suspect of blending in!';
+        vTitle.textContent = '🔎 Who is Camo Dude?';
+        vSub.textContent = 'Discuss and tap the player you suspect of blending in!';
       }
 
       const grid = document.getElementById('votingGrid');
       grid.innerHTML = '';
-
       state.playerNames.forEach((name, idx) => {
         const card = document.createElement('div');
-        card.className = 'player-vote-card';
-        card.innerHTML = `
-          <span class="vote-avatar">${AVATARS[idx % AVATARS.length]}</span>
-          <span class="vote-name">${name}</span>
-        `;
+        card.className = 'selectable-card category-card';
+        card.innerHTML = `<span class="category-icon">${AVATARS[idx % AVATARS.length]}</span><span class="category-name">${name}</span>`;
         card.addEventListener('click', () => {
           playSound('click');
           state.votedPlayerIndex = idx;
           btnConfirm.disabled = false;
-
-          document.querySelectorAll('.player-vote-card').forEach(c => c.classList.remove('selected'));
+          Array.from(grid.children).forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
         });
         grid.appendChild(card);
@@ -1361,35 +1096,21 @@
 
     function confirmVoting() {
       playSound('click');
-      const accusedIndex = state.votedPlayerIndex;
+      const accIdx = state.votedPlayerIndex;
 
       if (state.gameMode === 'double_trouble') {
-        const isCamoCaught = (accusedIndex === state.imposterIndex);
-        const isDunceCaught = (accusedIndex === state.dunceIndex);
-
-        if (isCamoCaught) {
-          state.caughtRole = 'camo';
-          triggerImposterGuessPhase();
-        } else if (isDunceCaught) {
-          state.caughtRole = 'dunce';
-          triggerImposterGuessPhase();
+        if (accIdx === state.imposterIndex) {
+          state.caughtRole = 'camo'; triggerImposterGuessPhase();
+        } else if (accIdx === state.dunceIndex) {
+          state.caughtRole = 'dunce'; triggerImposterGuessPhase();
         } else {
-          // Innocent Insider accused
-          renderResolution({
-            winner: 'imposter',
-            reason: 'An innocent Insider was accused! Both Camo Dude and Dunce escaped!'
-          });
+          renderResolution({ winner: 'imposter', reason: 'Innocent Insider accused!' });
         }
       } else {
-        const isImposterCaught = (accusedIndex === state.imposterIndex);
-        if (isImposterCaught) {
-          state.caughtRole = 'camo';
-          triggerImposterGuessPhase();
+        if (accIdx === state.imposterIndex) {
+          state.caughtRole = 'camo'; triggerImposterGuessPhase();
         } else {
-          renderResolution({
-            winner: 'imposter',
-            reason: 'Chameleon escaped un-voted!'
-          });
+          renderResolution({ winner: 'imposter', reason: 'Camo Dude escaped!' });
         }
       }
     }
@@ -1399,153 +1120,83 @@
       const accusedName = state.playerNames[caughtIndex];
 
       document.getElementById('accusedImposterName').textContent = accusedName;
-      const accusedEl2 = document.getElementById('accusedImposterName2');
-      if (accusedEl2) accusedEl2.textContent = accusedName;
-      document.getElementById('imposterCategoryHeader').textContent = `Topic: ${state.currentCategory.name}`;
+      document.getElementById('accusedImposterName2').textContent = accusedName;
+      document.getElementById('imposterCategoryHeader').textContent = `Category: ${state.currentCategory.name}`;
 
-      const cardTitle = document.querySelector('#screenImposterGuess .card-title');
-      const tipBox = document.querySelector('#imposterGuessStep1 div');
+      const title = document.getElementById('imposterGuessTitle');
+      const tipBox = document.getElementById('imposterGuessTip');
 
       if (state.gameMode === 'double_trouble') {
         if (state.caughtRole === 'dunce') {
-          if (cardTitle) cardTitle.textContent = '🎭 Dunce Caught! Decoy Word Revealed!';
-          if (tipBox) tipBox.textContent = `🔊 ${accusedName} was the Dunce with the fake word ("${state.decoyWordObj.secret}")! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+          title.textContent = '🎭 Dunce Caught!';
+          tipBox.textContent = `🔊 ${accusedName} was the Dunce with fake word ("${state.decoyWordObj.secret}")! Guess the Insiders' word!`;
         } else {
-          if (cardTitle) cardTitle.textContent = '🥸 Camo Dude Caught! Last Chance';
-          if (tipBox) tipBox.textContent = `🔊 ${accusedName} is the Camo Dude! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+          title.textContent = '🥸 Camo Dude Caught!';
+          tipBox.textContent = `🔊 ${accusedName}, guess the Insiders' word OUT LOUD before checking!`;
         }
       } else if (state.gameMode === 'decoy') {
-        if (cardTitle) cardTitle.textContent = '🥸 Caught! Decoy Word Revealed!';
-        if (tipBox) tipBox.textContent = `🔊 ${accusedName} had the decoy word ("${state.decoyWordObj.secret}")! Speak your guess for the Insiders' word ("${state.secretWordObj.secret}") OUT LOUD before checking!`;
+        title.textContent = '🥸 Caught! Decoy Word Revealed!';
+        tipBox.textContent = `🔊 ${accusedName} had the decoy word ("${state.decoyWordObj.secret}")! Guess the true word!`;
       } else {
-        if (cardTitle) cardTitle.textContent = "🥸 Caught! Camo Dude's Last Chance";
-        if (tipBox) tipBox.textContent = "🔊 Camo Dude: Say your secret word guess OUT LOUD to the room before tapping below!";
+        title.textContent = "🥸 Caught! Last Chance";
+        tipBox.textContent = "🔊 Say your secret word guess OUT LOUD before revealing!";
       }
 
-      const step1 = document.getElementById('imposterGuessStep1');
-      const step2 = document.getElementById('imposterGuessStep2');
-      if (step1) step1.classList.remove('hidden');
-      if (step2) step2.classList.add('hidden');
-
+      document.getElementById('imposterGuessStep1').style.display = 'flex';
+      document.getElementById('imposterGuessStep2').style.display = 'none';
       showScreen('imposterGuess');
     }
 
-    function renderResolution(resultData) {
+    function renderResolution(res) {
       const banner = document.getElementById('resultBanner');
-      const accusedName = state.playerNames[state.votedPlayerIndex] || "Nobody";
       const container = document.getElementById('resolutionDetailsContainer');
-      container.innerHTML = '';
-
+      const accName = state.playerNames[state.votedPlayerIndex] || "Nobody";
+      
+      const buildRow = (label, value) => `<div class="result-detail-row"><span class="result-detail-label">${label}</span><span class="result-detail-value">${value}</span></div>`;
+      
+      let html = '';
       if (state.gameMode === 'double_trouble') {
-        const camoName = state.playerNames[state.imposterIndex];
-        const dunceName = state.playerNames[state.dunceIndex];
-
-        container.innerHTML = `
-          <div class="result-detail-row">
-            <span class="result-detail-label">Camo Dude 🥸 (No Hint)</span>
-            <span class="result-detail-value">${camoName}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">The Dunce 🎭 (Fake Word)</span>
-            <span class="result-detail-value">${dunceName} ("${state.decoyWordObj.secret}")</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Secret Word 🤫</span>
-            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Group Accused ⚖️</span>
-            <span class="result-detail-value">${accusedName}</span>
-          </div>
-        `;
-
-        if (resultData.winner === 'insiders') {
-          playSound('win');
-          banner.className = 'result-banner win';
-          banner.textContent = `🎉 INSIDERS WIN! Caught ${accusedName}!`;
-        } else if (resultData.winner === 'imposter_stole') {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = (state.caughtRole === 'dunce') ? '🧠 DUNCE STOLE THE WIN!' : '🧠 CAMO DUDE STOLE THE WIN!';
+        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
+        html += buildRow('The Dunce 🎭', `${state.playerNames[state.dunceIndex]} ("${state.decoyWordObj.secret}")`);
+        html += buildRow('Secret Word 🤫', state.secretWordObj.secret);
+        html += buildRow('Group Accused ⚖️', accName);
+        
+        if (res.winner === 'insiders') {
+          playSound('win'); banner.className = 'result-banner win'; banner.textContent = `🎉 INSIDERS WIN! Caught ${accName}!`;
+        } else if (res.winner === 'imposter_stole') {
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = (state.caughtRole === 'dunce') ? '🧠 DUNCE STOLE WIN!' : '🧠 CAMO DUDE STOLE WIN!';
         } else {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = '🥸 CAMO DUDE & DUNCE ESCAPED!';
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 IMPOSTERS ESCAPED!';
         }
-
       } else if (state.gameMode === 'decoy') {
-        const imposterName = state.playerNames[state.imposterIndex];
-        container.innerHTML = `
-          <div class="result-detail-row">
-            <span class="result-detail-label">The Camo Dude 🥸</span>
-            <span class="result-detail-value">${imposterName}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Camo's Decoy Word</span>
-            <span class="result-detail-value" style="color: #000000;">${state.decoyWordObj.secret}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Insiders' Secret Word</span>
-            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Group Accused</span>
-            <span class="result-detail-value">${accusedName}</span>
-          </div>
-        `;
-
-        if (resultData.winner === 'insiders') {
-          playSound('win');
-          banner.className = 'result-banner win';
-          banner.textContent = '🎉 INSIDERS WIN!';
-        } else if (resultData.winner === 'imposter_stole') {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = '🧠 CAMO DUDE STOLE THE WIN!';
+        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
+        html += buildRow('Decoy Word', state.decoyWordObj.secret);
+        html += buildRow('Secret Word', state.secretWordObj.secret);
+        html += buildRow('Group Accused', accName);
+        
+        if (res.winner === 'insiders') {
+          playSound('win'); banner.className = 'result-banner win'; banner.textContent = '🎉 INSIDERS WIN!';
+        } else if (res.winner === 'imposter_stole') {
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🧠 CAMO DUDE STOLE WIN!';
         } else {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = '🥸 UNDERCOVER CAMO DUDE ESCAPED!';
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 CAMO DUDE ESCAPED!';
         }
-
       } else {
-        const imposterName = state.playerNames[state.imposterIndex];
-        const hintVal = (state.gameMode === 'no_hint') ? 'None (No Hint Mode)' : state.secretWordObj.hint;
-
-        container.innerHTML = `
-          <div class="result-detail-row">
-            <span class="result-detail-label">The Camo Dude 🥸</span>
-            <span class="result-detail-value">${imposterName}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Secret Word</span>
-            <span class="result-detail-value" style="color: #000000;">${state.secretWordObj.secret}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Camo Dude's Hint</span>
-            <span class="result-detail-value" style="color: #000000;">${hintVal}</span>
-          </div>
-          <div class="result-detail-row">
-            <span class="result-detail-label">Group Accused</span>
-            <span class="result-detail-value">${accusedName}</span>
-          </div>
-        `;
-
-        if (resultData.winner === 'insiders') {
-          playSound('win');
-          banner.className = 'result-banner win';
-          banner.textContent = '🎉 INSIDERS WIN!';
-        } else if (resultData.winner === 'imposter_stole') {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = '🧠 CAMO DUDE STOLE THE WIN!';
+        html += buildRow('Camo Dude 🥸', state.playerNames[state.imposterIndex]);
+        html += buildRow('Secret Word', state.secretWordObj.secret);
+        html += buildRow('Hint', state.gameMode === 'no_hint' ? 'None' : state.secretWordObj.hint);
+        html += buildRow('Group Accused', accName);
+        
+        if (res.winner === 'insiders') {
+          playSound('win'); banner.className = 'result-banner win'; banner.textContent = '🎉 INSIDERS WIN!';
+        } else if (res.winner === 'imposter_stole') {
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🧠 CAMO DUDE STOLE WIN!';
         } else {
-          playSound('loss');
-          banner.className = 'result-banner loss';
-          banner.textContent = '🥸 CAMO DUDE ESCAPED!';
+          playSound('loss'); banner.className = 'result-banner loss'; banner.textContent = '🥸 CAMO DUDE ESCAPED!';
         }
       }
-
+      
+      container.innerHTML = html;
       showScreen('resolution');
     }
 
@@ -1561,9 +1212,7 @@
         if (state.timerSeconds > 0) {
           state.timerSeconds--;
           updateTimerDisplay();
-          if (state.timerSeconds <= 5) {
-            playSound('tick');
-          }
+          if (state.timerSeconds <= 5 && state.timerSeconds > 0) playSound('tick');
         } else {
           clearInterval(state.timerInterval);
           state.timerInterval = null;
@@ -1586,124 +1235,97 @@
     function updateTimerDisplay() {
       const mins = Math.floor(state.timerSeconds / 60);
       const secs = state.timerSeconds % 60;
-      const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-      document.getElementById('timerDisplay').textContent = formatted;
+      document.getElementById('timerDisplay').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
-    // --- 8. GUESS REVEAL LISTENERS ---
+    // --- 8. EVENT LISTENERS ---
     function attachEventListeners() {
-      // Audio toggle
-      document.getElementById('audioToggleBtn').addEventListener('click', () => {
+      document.getElementById('audioToggleBtn').onclick = (e) => {
         state.soundEnabled = !state.soundEnabled;
-        document.getElementById('audioToggleBtn').textContent = state.soundEnabled ? '🔊' : '🔇';
-      });
+        e.target.textContent = state.soundEnabled ? '🔊' : '🔇';
+      };
 
-      // Player counter
-      document.getElementById('btnMinusPlayers').addEventListener('click', () => {
+      document.getElementById('btnMinusPlayers').onclick = () => {
         playSound('click');
         if (state.playerCount > 3) {
           state.playerCount--;
           state.playerNames = state.playerNames.slice(0, state.playerCount);
           renderPlayerInputs();
         }
-      });
+      };
 
-      document.getElementById('btnPlusPlayers').addEventListener('click', () => {
+      document.getElementById('btnPlusPlayers').onclick = () => {
         playSound('click');
         if (state.playerCount < 8) {
           state.playerCount++;
-          if (!state.playerNames[state.playerCount - 1]) {
-            state.playerNames.push(`Player ${state.playerCount}`);
-          }
+          state.playerNames.push(`Player ${state.playerCount}`);
           renderPlayerInputs();
         }
-      });
+      };
 
-      // Turn order toggle card
       const turnCard = document.getElementById('turnOrderToggleCard');
-      if (turnCard) {
-        turnCard.addEventListener('click', () => {
-          playSound('click');
-          state.randomizeTurnOrder = !state.randomizeTurnOrder;
-          document.getElementById('turnOrderBadge').textContent = state.randomizeTurnOrder ? '✅' : '❌';
-          turnCard.style.background = state.randomizeTurnOrder ? '#C7D2FE' : '#FFFFFF';
-        });
-      }
+      turnCard.onclick = () => {
+        playSound('click');
+        state.randomizeTurnOrder = !state.randomizeTurnOrder;
+        turnCard.dataset.active = state.randomizeTurnOrder;
+        document.getElementById('turnOrderBadge').textContent = state.randomizeTurnOrder ? '✅' : '❌';
+      };
 
-      // Discussion Reshuffle Order Button
-      const btnReshuffle = document.getElementById('btnReshuffleTurnOrder');
-      if (btnReshuffle) {
-        btnReshuffle.addEventListener('click', () => {
-          playSound('click');
-          for (let i = state.turnOrder.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [state.turnOrder[i], state.turnOrder[j]] = [state.turnOrder[j], state.turnOrder[i]];
-          }
-          renderTurnOrderList();
-        });
-      }
+      document.getElementById('btnReshuffleTurnOrder').onclick = () => {
+        playSound('click');
+        for (let i = state.turnOrder.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.turnOrder[i], state.turnOrder[j]] = [state.turnOrder[j], state.turnOrder[i]];
+        }
+        renderTurnOrderList();
+      };
 
-      // Screen navigation buttons
-      document.getElementById('btnStartGame').addEventListener('click', startGame);
-      document.getElementById('btnRevealSecret').addEventListener('click', revealSecretRole);
-      document.getElementById('btnHideAndContinue').addEventListener('click', advancePassAndPlay);
-      document.getElementById('btnBeginVoting').addEventListener('click', renderVotingGrid);
-      document.getElementById('btnConfirmVote').addEventListener('click', confirmVoting);
+      // Flow Buttons
+      document.getElementById('btnStartGame').onclick = startGame;
+      document.getElementById('btnRevealSecret').onclick = revealSecretRole;
+      document.getElementById('btnHideAndContinue').onclick = advancePassAndPlay;
+      document.getElementById('btnBeginVoting').onclick = renderVotingGrid;
+      document.getElementById('btnConfirmVote').onclick = confirmVoting;
 
-      // Chameleon Blind Guess Handlers
-      const btnRevealWord = document.getElementById('btnRevealWordForCheck');
-      if (btnRevealWord) {
-        btnRevealWord.addEventListener('click', () => {
-          playSound('reveal');
-          document.getElementById('secretWordCheckDisplay').textContent = state.secretWordObj.secret;
-          document.getElementById('imposterGuessStep1').classList.add('hidden');
-          document.getElementById('imposterGuessStep2').classList.remove('hidden');
-        });
-      }
+      // Guess Check Buttons
+      document.getElementById('btnRevealWordForCheck').onclick = () => {
+        playSound('reveal');
+        document.getElementById('secretWordCheckDisplay').textContent = state.secretWordObj.secret;
+        document.getElementById('imposterGuessStep1').style.display = 'none';
+        document.getElementById('imposterGuessStep2').style.display = 'flex';
+      };
 
-      const btnCorrect = document.getElementById('btnGuessCorrect');
-      if (btnCorrect) {
-        btnCorrect.addEventListener('click', () => {
-          playSound('click');
-          renderResolution({
-            winner: 'imposter_stole',
-            reason: 'Chameleon was caught, but guessed the secret word correctly out loud!'
-          });
-        });
-      }
+      document.getElementById('btnGuessCorrect').onclick = () => {
+        playSound('click');
+        renderResolution({ winner: 'imposter_stole' });
+      };
 
-      const btnWrong = document.getElementById('btnGuessWrong');
-      if (btnWrong) {
-        btnWrong.addEventListener('click', () => {
-          playSound('click');
-          renderResolution({
-            winner: 'insiders',
-            reason: 'Chameleon was caught and guessed wrong!'
-          });
-        });
-      }
+      document.getElementById('btnGuessWrong').onclick = () => {
+        playSound('click');
+        renderResolution({ winner: 'insiders' });
+      };
 
-      // Play again
-      document.getElementById('btnPlayAgainSame').addEventListener('click', startGame);
-      document.getElementById('btnNewGame').addEventListener('click', () => {
+      // Restart Buttons
+      document.getElementById('btnPlayAgainSame').onclick = startGame;
+      document.getElementById('btnNewGame').onclick = () => {
         playSound('click');
         showScreen('setup');
-      });
+      };
 
-      // Timer controls
-      document.getElementById('btnStartTimer').addEventListener('click', () => {
+      // Timer Buttons
+      document.getElementById('btnStartTimer').onclick = () => {
         if (state.timerInterval) {
           clearInterval(state.timerInterval);
           state.timerInterval = null;
-          document.getElementById('btnStartTimer').textContent = '▶️ Start';
+          document.getElementById('btnStartTimer').textContent = '▶️ Resume';
         } else {
           startTimer();
         }
-      });
-      document.getElementById('btnResetTimer').addEventListener('click', resetTimer);
+      };
+      document.getElementById('btnResetTimer').onclick = resetTimer;
     }
 
-    // Run Initialization
+    // Run Init
     initUI();
   </script>
 </body>
