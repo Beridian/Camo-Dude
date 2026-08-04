@@ -1397,7 +1397,7 @@ const CATEGORIES = [
     { "secret": "Nakia", "hint": "Undercover" },
     { "secret": "M'Baku", "hint": "Traditional" },
     { "secret": "Wong", "hint": "Duty" },
-    { "secret": "Ancient One", "hint": "Infinite" }
+    { "secret": "Ancient One", "hint": "Infinite" },
    { secret: "Avatar The Last Airbender", hint: "Fourfold" },
   { secret: "Mickey Mouse", hint: "Gloves" },
   { secret: "Elsa", hint: "Isolation" },
@@ -1909,7 +1909,7 @@ const CATEGORIES = [
   { secret: "Piano", hint: "Instrument" },
   { secret: "Drum", hint: "Instrument" },
   { secret: "Football", hint: "Sport" },
-  { secret: "Basketball", hint: "Sport" }
+  { secret: "Basketball", hint: "Sport" },
   { secret: "Baseball", hint: "Sport" },
   { secret: "Baseball Bat", hint: "Sporting Goods" },
   { secret: "Baseball Glove", hint: "Sporting Goods" },
