@@ -1,1085 +1,2021 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Camo Dude</title>
-  <!-- Load external categories, but we have a fallback in JS just in case -->
-  <script src="categories.js"></script>
-  <style>
-    :root {
-      /* Palette */
-      --bg-yellow: #FFD93B;
-      --bg-yellow-light: #FFE66D;
-      --bg-card: #FFFFFF;
-      --bg-surface: #F8FAFC;
-      --bg-info: #FFF9D2;
-      --border-color: #000000;
-      
-      /* Text Colors */
-      --text-main: #000000;
-      --text-muted: #475569;
-      --text-light: #FFFFFF;
-      
-      /* Accents */
-      --accent-coral: #FF6B6B;
-      --accent-teal: #4ECDC4;
-      --accent-yellow: #FFD93B;
-      --accent-purple: #C7D2FE;
-      --accent-danger: #FF4757;
-      
-      /* Radii */
-      --radius-lg: 24px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
-      
-      /* Shadows */
-      --shadow-base: 4px 4px 0px 0px var(--border-color);
-      --shadow-hover: 6px 6px 0px 0px var(--border-color);
-      --shadow-active: 2px 2px 0px 0px var(--border-color);
-      --shadow-card: 8px 8px 0px 0px var(--border-color);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    body {
-      background-color: var(--bg-yellow);
-      background-image: radial-gradient(circle at 50% 0%, var(--bg-yellow-light) 0%, var(--bg-yellow) 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 1rem;
-      overflow-x: hidden;
-    }
-
-    /* Container */
-    #app {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-      padding-bottom: 2rem;
-      padding-top: 3rem; /* Space for audio button */
-    }
-
-    .top-audio-btn {
-      position: absolute;
-      top: 0;
-      right: 0;
-      z-index: 50;
-    }
-
-    /* Buttons */
-    .audio-btn {
-      background: var(--accent-teal);
-      border: 3px solid var(--border-color);
-      color: var(--text-main);
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.35rem;
-      box-shadow: var(--shadow-base);
-      transition: all 0.15s ease;
-    }
-
-    .audio-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: var(--shadow-active);
-    }
-
-    .btn {
-      width: 100%;
-      min-height: 54px;
-      padding: 0.85rem 1.25rem;
-      border-radius: var(--radius-md);
-      border: 3px solid var(--border-color);
-      font-size: 1.1rem;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-      box-shadow: var(--shadow-base);
-    }
-
-    .btn:hover:not(:disabled) {
-      transform: translate(-2px, -2px);
-      box-shadow: var(--shadow-hover);
-    }
-
-    .btn:active:not(:disabled) {
-      transform: translate(2px, 2px);
-      box-shadow: var(--shadow-active);
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      filter: grayscale(0.5);
-    }
-
-    .btn-primary { background: var(--accent-coral); color: var(--text-main); }
-    .btn-secondary { background: var(--bg-card); color: var(--text-main); }
-    .btn-success { background: var(--accent-teal); color: var(--text-main); }
-    .btn-warning { background: var(--accent-yellow); color: var(--text-main); }
-    .btn-danger { background: var(--accent-danger); color: var(--text-light); }
-
-    /* Screen Management & Animation */
-    .screen-card {
-      background: var(--bg-card);
-      border: 4px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.75rem 1.5rem;
-      box-shadow: var(--shadow-card);
-      display: none;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .screen-card.active {
-      display: flex;
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    @keyframes popIn {
-      from { opacity: 0; transform: translateY(15px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Typography & Structural Utilities */
-    .card-title {
-      font-size: 1.75rem;
-      font-weight: 900;
-      text-align: center;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
-    }
-
-    .card-subtitle {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-align: center;
-      line-height: 1.4;
-      margin-top: -0.75rem;
-    }
-
-    .section-label {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 0.6rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .info-box {
-      background: var(--bg-info);
-      padding: 1rem;
-      border-radius: var(--radius-md);
-      border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-base);
-      text-align: center;
-    }
-
-    .flex-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    /* Scrollable Utility */
-    .scroll-box {
-      max-height: 280px;
-      overflow-y: auto;
-      padding: 0.25rem;
-      margin: -0.25rem;
-      padding-right: 0.5rem;
-    }
-    
-    /* Make scrollbars neat on supporting browsers */
-    .scroll-box::-webkit-scrollbar, .player-inputs::-webkit-scrollbar {
-      width: 6px;
-    }
-    .scroll-box::-webkit-scrollbar-track, .player-inputs::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .scroll-box::-webkit-scrollbar-thumb, .player-inputs::-webkit-scrollbar-thumb {
-      background: rgba(0,0,0,0.2);
-      border-radius: 4px;
-    }
-
-    /* Player Counter Grid */
-    .counter-row {
-      background: var(--bg-yellow-light);
-      border: 3px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.85rem 1.25rem;
-      box-shadow: var(--shadow-base);
-    }
-
-    .counter-label {
-      font-weight: 800;
-      font-size: 1.1rem;
-    }
-
-    .counter-controls {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .counter-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--bg-card);
-      border: 3px solid var(--border-color);
-      font-size: 1.35rem;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-      transition: all 0.1s ease;
-    }
-
-    .counter-btn:active:not(:disabled) {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px 0px var(--border-color);
-    }
-
-    .counter-val {
-      font-size: 1.4rem;
-      font-weight: 900;
-      width: 32px;
-      text-align: center;
-    }
-
-    /* Inputs */
-    .player-inputs {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      max-height: 240px;
-      overflow-y: auto;
-      padding-right: 0.25rem;
-    }
-
-    .input-group {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: var(--bg-surface);
-      border: 3px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      padding: 0.6rem 1rem;
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-      transition: background-color 0.2s;
-    }
-    
-    .input-group:focus-within {
-      background: var(--bg-card);
-    }
-
-    .input-avatar { font-size: 1.3rem; }
-    
-    .input-field {
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      font-size: 1.05rem;
-      font-weight: 800;
-      outline: none;
-    }
-    .input-field::placeholder { color: #94A3B8; font-weight: 600; }
-
-    /* Selection Grids */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
-
-    .grid-1 {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-    }
-
-    .selectable-card {
-      background: var(--bg-card);
-      border: 3px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.85rem;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: var(--shadow-base);
-    }
-
-    .selectable-card:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: var(--shadow-hover);
-      background: var(--bg-info);
-    }
-
-    .selectable-card.selected {
-      background: var(--accent-purple);
-      border-width: 3px;
-    }
-    
-    .category-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
-    .category-card.selected { background: var(--accent-teal); }
-    .category-icon { font-size: 1.8rem; }
-    .category-name { font-size: 0.95rem; font-weight: 800; word-break: break-word; }
-
-    .mode-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
-    .mode-icon { font-size: 1.3rem; }
-    .mode-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; }
-    .mode-desc { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); line-height: 1.35; }
-
-    .toggle-card {
-      background: var(--accent-purple);
-      padding: 0.85rem 1.25rem;
-    }
-    .toggle-card[data-active="false"] { background: var(--bg-card); }
-
-    /* Special Sections (Shield, Secret) */
-    .shield-box {
-      text-align: center;
-      padding: 2.5rem 1.25rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.25rem;
-      background: var(--bg-yellow-light);
-      border: 4px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-hover);
-    }
-    .shield-icon { font-size: 5rem; animation: pulse 2s infinite ease-in-out; }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-    .player-target-badge {
-      font-size: 2rem;
-      font-weight: 900;
-      background: var(--bg-card);
-      padding: 0.75rem 2rem;
-      border-radius: 999px;
-      border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-base);
-      text-transform: uppercase;
-    }
-
-    .secret-box {
-      border-radius: var(--radius-lg);
-      padding: 2.5rem 1.5rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      border: 4px solid var(--border-color);
-      box-shadow: var(--shadow-card);
-    }
-    .secret-box.insider { background: var(--accent-teal); }
-    .secret-box.imposter { background: var(--accent-coral); }
-
-    .role-badge {
-      display: inline-block;
-      padding: 0.6rem 1.5rem;
-      border-radius: 999px;
-      font-size: 1rem;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      margin: 0 auto;
-      border: 3px solid var(--border-color);
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-      background: var(--bg-card);
-    }
-
-    .secret-word-display {
-      font-size: 2.5rem;
-      font-weight: 900;
-      background: var(--bg-card);
-      padding: 1.25rem;
-      border-radius: var(--radius-md);
-      border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-base);
-      line-height: 1.2;
-      color: var(--text-main);
-    }
-
-    .tip-box {
-      font-size: 1rem;
-      font-weight: 700;
-      line-height: 1.5;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 1rem;
-      border-radius: var(--radius-sm);
-      border: 3px solid var(--border-color);
-    }
-
-    /* Discussion Phase & Timer */
-    .timer-display {
-      font-size: 3rem;
-      font-weight: 900;
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      margin: 0.5rem 0;
-    }
-
-    .turn-order-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      background: var(--bg-info);
-      padding: 1rem;
-      border-radius: var(--radius-md);
-      border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-base);
-    }
-
-    .turn-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.1rem;
-      font-weight: 800;
-    }
-
-    .turn-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--border-color);
-      font-size: 0.95rem;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--bg-card);
-    }
-
-    /* Resolution Phase */
-    .result-banner {
-      font-size: 2.25rem;
-      font-weight: 900;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
-      padding: 1rem;
-      border: 4px solid var(--border-color);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-hover);
-    }
-    .result-banner.win { background: var(--accent-teal); }
-    .result-banner.loss { background: var(--accent-coral); }
-
-    .result-detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: var(--bg-info);
-      border-radius: var(--radius-sm);
-      border: 3px solid var(--border-color);
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-    }
-    .result-detail-label { font-size: 1rem; font-weight: 800; }
-    .result-detail-value { font-size: 1.15rem; font-weight: 900; }
-
-  </style>
-</head>
-<body>
-
-  <main id="app">
-    <!-- Floating Audio Toggle -->
-    <div class="top-audio-btn">
-      <button class="audio-btn" id="audioToggleBtn" title="Toggle Sound" aria-label="Toggle Audio">🔊</button>
-    </div>
-
-    <!-- SCREEN 1: SETUP -->
-    <div id="screenSetup" class="screen-card active">
-      <h1 class="card-title">🥸 Camo Dude</h1>
-
-      <!-- Player Count -->
-      <div class="counter-row flex-row">
-        <span class="counter-label">Players</span>
-        <div class="counter-controls">
-          <button class="counter-btn" id="btnMinusPlayers" aria-label="Decrease players">-</button>
-          <span class="counter-val" id="playerCountVal">4</span>
-          <button class="counter-btn" id="btnPlusPlayers" aria-label="Increase players">+</button>
-        </div>
-      </div>
-
-      <!-- Player Names -->
-      <div>
-        <div class="section-label">Names</div>
-        <div class="player-inputs" id="playerInputsContainer"></div>
-      </div>
-
-      <!-- Game Mode Selection -->
-      <div>
-        <div class="section-label">Game Mode</div>
-        <div class="grid-1" id="modeGrid">
-          <div class="selectable-card selected" data-mode="hint">
-            <div class="mode-header">
-              <span class="mode-icon">💡</span><span class="mode-title">Hint Mode</span>
-            </div>
-            <div class="mode-desc">Camo Dude gets a hint.</div>
-          </div>
-          <div class="selectable-card" data-mode="no_hint">
-            <div class="mode-header">
-              <span class="mode-icon">❓</span><span class="mode-title">No Hint Mode</span>
-            </div>
-            <div class="mode-desc">Camo Dude hard mode.</div>
-          </div>
-          <div class="selectable-card" data-mode="decoy">
-            <div class="mode-header">
-              <span class="mode-icon">🎭</span><span class="mode-title">Decoy Word Mode</span>
-            </div>
-            <div class="mode-desc">Camo Dude doesn't know they are imposter, gets a fake word!</div>
-          </div>
-          <div class="selectable-card" data-mode="double_trouble">
-            <div class="mode-header">
-              <span class="mode-icon">🎪</span><span class="mode-title">Double Agent Mode</span>
-            </div>
-            <div class="mode-desc">1 Camo Dude (No Hint) + 1 Dunce (Fake Word)!</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Turn Order Setting -->
-      <div>
-        <div class="section-label">Turn Order Setting</div>
-        <div id="turnOrderToggleCard" class="selectable-card toggle-card flex-row" data-active="true">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.5rem;">🎲</span>
-            <div>
-              <div class="mode-title">Randomize Order</div>
-              <div class="mode-desc">Shuffle starting turn</div>
-            </div>
-          </div>
-          <div style="font-size: 1.5rem;" id="turnOrderBadge">✅</div>
-        </div>
-      </div>
-
-      <!-- Category Selection (Scrollable to support many topics securely) -->
-      <div>
-        <div class="section-label">Select Topic Category</div>
-        <div class="scroll-box">
-          <div class="grid-2" id="categoryGrid"></div>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" id="btnStartGame">Start Game</button>
-    </div>
-
-    <!-- SCREEN 2: PASS & PLAY SHIELD -->
-    <div id="screenShield" class="screen-card">
-      <div class="shield-box">
-        <div class="shield-icon">🙈</div>
-        <div class="section-label">Secret</div>
-        <div style="font-size: 1.25rem; font-weight: 800;">Pass the device to:</div>
-        <div class="player-target-badge" id="shieldPlayerName">Player 1</div>
-        <button class="btn btn-primary" id="btnRevealSecret">Reveal</button>
-      </div>
-    </div>
-
-    <!-- SCREEN 3: SECRET REVEAL -->
-    <div id="screenReveal" class="screen-card">
-      <div class="secret-box" id="secretBox">
-        <div class="role-badge" id="roleBadge">INSIDER</div>
-        <div class="section-label" id="revealCategoryLabel">Topic Category</div>
-        <div class="secret-word-display" id="secretWordDisplay">Elephant</div>
-        <div class="tip-box" id="revealTipBox">
-          Say one word related to this topic.
-        </div>
-      </div>
-      <button class="btn btn-secondary" id="btnHideAndContinue">Hide & Next Player</button>
-    </div>
-
-    <!-- SCREEN 4: DISCUSSION PHASE -->
-    <div id="screenDiscussion" class="screen-card">
-      <div class="flex-row">
-        <h2 class="card-title">🗣️ Discussion</h2>
-        <button class="btn btn-secondary" id="btnReshuffleTurnOrder" style="padding: 0.4rem 0.75rem; font-size: 0.9rem; min-height: 40px; width: auto;">Shuffle</button>
-      </div>
-      <div class="card-subtitle">Going in order below, say OUT LOUD exactly ONE word or phrase related to the secret!</div>
-
-      <div class="turn-order-list" id="turnOrderList"></div>
-
-      <!-- Optional Timer -->
-      <div class="info-box">
-        <div class="section-label">Discussion Timer</div>
-        <div class="timer-display" id="timerDisplay">01:00</div>
-        <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 0.5rem;">
-          <button class="btn btn-secondary" id="btnStartTimer" style="min-height: 48px; font-size: 1rem;">▶️ Start</button>
-          <button class="btn btn-secondary" id="btnResetTimer" style="min-height: 48px; font-size: 1rem;">🔄 Reset</button>
-        </div>
-      </div>
-
-      <button class="btn btn-warning" id="btnBeginVoting">Begin Voting</button>
-    </div>
-
-    <!-- SCREEN 5: VOTING -->
-    <div id="screenVoting" class="screen-card">
-      <h2 class="card-title" id="votingTitle">🔎 Who is Camo Dude?</h2>
-      <div class="card-subtitle" id="votingSubtitle">Discuss and tap the player you suspect!</div>
-
-      <div class="grid-2" id="votingGrid"></div>
-
-      <button class="btn btn-danger" id="btnConfirmVote" disabled>⚖️ Confirm Accusation</button>
-    </div>
-
-    <!-- SCREEN 6: CAMO DUDE GUESS -->
-    <div id="screenImposterGuess" class="screen-card">
-      <h2 class="card-title" id="imposterGuessTitle">🥸 Caught, ya dingus!</h2>
-      <div class="card-subtitle">
-        <strong id="accusedImposterName">Alex</strong> was caught! Speak your blind guess OUT LOUD to the group!
-      </div>
-
-      <div class="section-label" style="text-align: center;" id="imposterCategoryHeader">Category: Animals</div>
-
-      <div id="imposterGuessStep1" style="display: flex; flex-direction: column; gap: 1.25rem;">
-        <div class="info-box" id="imposterGuessTip">
-          🔊 Camo Dude: Last chance to guess the secret.
-        </div>
-        <button class="btn btn-primary" id="btnRevealWordForCheck">Reveal Secret Word</button>
-      </div>
-
-      <div id="imposterGuessStep2" style="display: none; flex-direction: column; gap: 1.5rem;">
-        <div class="info-box" style="background: var(--bg-card);">
-          <div class="section-label">The Actual Secret Word Was:</div>
-          <div class="secret-word-display" id="secretWordCheckDisplay" style="background: var(--accent-yellow);">ELEPHANT</div>
-        </div>
-        <div style="font-size: 1.15rem; font-weight: 900; text-align: center;">
-          Did <span id="accusedImposterName2">Alex</span> guess it correctly?
-        </div>
-        <div style="display: flex; gap: 1rem;">
-          <button class="btn btn-success" id="btnGuessCorrect">Yes</button>
-          <button class="btn btn-danger" id="btnGuessWrong">No</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCREEN 7: RESOLUTION -->
-    <div id="screenResolution" class="screen-card">
-      <div class="result-banner" id="resultBanner">INSIDERS WIN! 🎉</div>
-      <div id="resolutionDetailsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
-      
-      <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
-        <button class="btn btn-primary" id="btnPlayAgainSame">Play Again (Same Players)</button>
-        <button class="btn btn-secondary" id="btnNewGame">Main Menu</button>
-      </div>
-    </div>
-
-  </main>
-
-  <script>
-    // --- 1. GAME DATA STRUCTURE ---
-    // Fallback data in case categories.js is missing or empty
-    const FALLBACK_CATEGORIES = [
-      { 
-        id: 'animals', name: 'Animals', icon: '🦁', 
-        words: [
-          { secret: 'Elephant', hint: 'Has a trunk' }, 
-          { secret: 'Lion', hint: 'King of jungle' },
-          { secret: 'Penguin', hint: 'Tuxedo bird' }
-        ] 
-      },
-      { 
-        id: 'food', name: 'Food', icon: '🍔', 
-        words: [
-          { secret: 'Pizza', hint: 'Italian slices' }, 
-          { secret: 'Sushi', hint: 'Raw fish' },
-          { secret: 'Taco', hint: 'Shell and meat' }
-        ] 
-      }
-    ];
-    const getCategories = () => (window.CATEGORIES && window.CATEGORIES.length > 0) ? window.CATEGORIES : FALLBACK_CATEGORIES;
-
-    const AVATARS = ["🦊", "🐼", "🐯", "🦁", "🦄", "🐨", "🐸", "🦉"];
-
-    // --- 2. GAME STATE MANAGEMENT ---
-    let state = {
-      playerCount: 4,
-      playerNames: ["Player 1", "Player 2", "Player 3", "Player 4"],
-      gameMode: "hint", // "hint" | "no_hint" | "decoy" | "double_trouble"
-      randomizeTurnOrder: true,
-      turnOrder: [0, 1, 2, 3],
-      selectedCategoryId: "random",
-      currentCategory: null,
-      secretWordObj: null,
-      decoyWordObj: null,
-      imposterIndex: -1, 
-      dunceIndex: -1,    
-      caughtRole: null,  
-      currentTurnIndex: 0,
-      votedPlayerIndex: -1,
-      timerSeconds: 60,
-      timerInterval: null,
-      soundEnabled: true
-    };
-
-    // --- 3. WEB AUDIO SYNTHESIZER ---
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function initAudio() {
-      if (!audioCtx && AudioContextClass) audioCtx = new AudioContextClass();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    function playSound(type) {
-      if (!state.soundEnabled) return;
-      try {
-        initAudio();
-        if (!audioCtx) return;
-        
-        const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        if (type === 'click') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-          gain.gain.setValueAtTime(0.15, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now);
-          osc.stop(now + 0.05);
-        } else if (type === 'reveal') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(300, now);
-          osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now);
-          osc.stop(now + 0.2);
-        } else if (type === 'win') {
-          const notes = [440, 554.37, 659.25, 880];
-          notes.forEach((freq, idx) => {
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.type = 'sine';
-            o.frequency.setValueAtTime(freq, now + idx * 0.1);
-            g.gain.setValueAtTime(0.2, now + idx * 0.1);
-            g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
-            o.connect(g);
-            g.connect(audioCtx.destination);
-            o.start(now + idx * 0.1);
-            o.stop(now + idx * 0.1 + 0.25);
-          });
-        } else if (type === 'loss') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, now);
-          osc.frequency.exponentialRampToValueAtTime(110, now + 0.3);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now);
-          osc.stop(now + 0.3);
-        } else if (type === 'tick') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(800, now);
-          gain.gain.setValueAtTime(0.05, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now);
-          osc.stop(now + 0.03);
-        }
-      } catch (e) {
-        console.log("Audio playback error:", e);
-      }
-    }
-
-    // --- 4. DOM ELEMENTS & NAVIGATION ---
-    const screens = {
-      setup: document.getElementById('screenSetup'),
-      shield: document.getElementById('screenShield'),
-      reveal: document.getElementById('screenReveal'),
-      discussion: document.getElementById('screenDiscussion'),
-      voting: document.getElementById('screenVoting'),
-      imposterGuess: document.getElementById('screenImposterGuess'),
-      resolution: document.getElementById('screenResolution')
-    };
-
-    function showScreen(screenKey) {
-      Object.keys(screens).forEach(key => {
-        if (key === screenKey) {
-          screens[key].classList.add('active');
-        } else {
-          screens[key].classList.remove('active');
-        }
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // --- 5. SETUP & RENDER FUNCTIONS ---
-    function initUI() {
-      renderPlayerInputs();
-      renderModeGrid();
-      renderCategoryGrid();
-      attachEventListeners();
-    }
-
-    function renderModeGrid() {
-      const cards = document.querySelectorAll('#modeGrid .selectable-card');
-      cards.forEach(card => {
-        const mode = card.getAttribute('data-mode');
-        card.classList.toggle('selected', mode === state.gameMode);
-        
-        card.onclick = () => {
-          playSound('click');
-          state.gameMode = mode;
-          if (state.gameMode === 'double_trouble' && state.playerCount < 4) {
-            state.playerCount = 4;
-            while(state.playerNames.length < 4) state.playerNames.push(`Player ${state.playerNames.length + 1}`);
-            renderPlayerInputs();
-          }
-          renderModeGrid();
-        };
-      });
-    }
-
-    function renderPlayerInputs() {
-      const container = document.getElementById('playerInputsContainer');
-      container.innerHTML = '';
-
-      for (let i = 0; i < state.playerCount; i++) {
-        const avatar = AVATARS[i % AVATARS.length];
-        const defaultName = state.playerNames[i] || `Player ${i + 1}`;
-
-        const group = document.createElement('div');
-        group.className = 'input-group';
-        group.innerHTML = `
-          <span class="input-avatar">${avatar}</span>
-          <input type="text" class="input-field" data-index="${i}" value="${defaultName}" placeholder="Player ${i + 1} Name">
-        `;
-
-        const input = group.querySelector('input');
-        input.addEventListener('change', (e) => {
-          state.playerNames[i] = e.target.value.trim() || `Player ${i + 1}`;
-        });
-
-        container.appendChild(group);
-      }
-      
-      document.getElementById('playerCountVal').textContent = state.playerCount;
-      const minPlayers = (state.gameMode === 'double_trouble') ? 4 : 3;
-      document.getElementById('btnMinusPlayers').disabled = state.playerCount <= minPlayers;
-      document.getElementById('btnPlusPlayers').disabled = state.playerCount >= 8;
-    }
-
-    function renderCategoryGrid() {
-      const grid = document.getElementById('categoryGrid');
-      
-      // If the grid elements are already built, just update the CSS classes
-      // This prevents the scroll position from jumping when the user taps a card!
-      if (grid.children.length > 0) {
-        Array.from(grid.children).forEach(card => {
-          card.classList.toggle('selected', card.dataset.id === state.selectedCategoryId);
-        });
-        return;
-      }
-      
-      grid.innerHTML = '';
-      const cats = getCategories();
-
-      // Factory helper to build the cards cleanly
-      const createCard = (id, icon, name) => {
-        const card = document.createElement('div');
-        card.dataset.id = id;
-        card.className = `selectable-card category-card ${state.selectedCategoryId === id ? 'selected' : ''}`;
-        card.innerHTML = `<span class="category-icon">${icon}</span><span class="category-name">${name}</span>`;
-        card.addEventListener('click', () => {
-          playSound('click');
-          state.selectedCategoryId = id;
-          // Apply selection visuals inline instantly
-          Array.from(grid.children).forEach(c => {
-             c.classList.toggle('selected', c.dataset.id === id);
-          });
-        });
-        return card;
-      };
-
-      grid.appendChild(createCard('random', '🎲', 'Random'));
-      cats.forEach(cat => grid.appendChild(createCard(cat.id, cat.icon, cat.name)));
-    }
-
-    // --- 6. GAME LOOP LOGIC ---
-    function startGame() {
-      playSound('click');
-      const cats = getCategories();
-
-      // Ensure names array covers player count
-      for (let i = 0; i < state.playerCount; i++) {
-        const inputField = document.querySelector(`.input-field[data-index="${i}"]`);
-        state.playerNames[i] = inputField ? (inputField.value.trim() || `Player ${i + 1}`) : `Player ${i + 1}`;
-      }
-
-      // Assign Category & Words
-      if (state.selectedCategoryId === 'random') {
-        state.currentCategory = cats[Math.floor(Math.random() * cats.length)];
-      } else {
-        state.currentCategory = cats.find(c => c.id === state.selectedCategoryId) || cats[0];
-      }
-
-      const wordIdx = Math.floor(Math.random() * state.currentCategory.words.length);
-      state.secretWordObj = state.currentCategory.words[wordIdx];
-      state.caughtRole = null;
-
-      // Assign Roles
-      if (state.gameMode === 'double_trouble') {
-        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
-        do { state.dunceIndex = Math.floor(Math.random() * state.playerCount); } 
-        while (state.dunceIndex === state.imposterIndex);
-        
-        const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
-        state.decoyWordObj = otherWords[Math.floor(Math.random() * otherWords.length)];
-      } else if (state.gameMode === 'decoy') {
-        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
-        state.dunceIndex = -1;
-        const otherWords = state.currentCategory.words.filter(w => w.secret !== state.secretWordObj.secret);
-        state.decoyWordObj = otherWords[Math.floor(Math.random() * otherWords.length)];
-      } else {
-        state.imposterIndex = Math.floor(Math.random() * state.playerCount);
-        state.dunceIndex = -1;
-        state.decoyWordObj = null;
-      }
-
-      // Set Order
-      let order = Array.from({ length: state.playerCount }, (_, i) => i);
-      if (state.randomizeTurnOrder) {
-        for (let i = order.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [order[i], order[j]] = [order[j], order[i]];
-        }
-      }
-      state.turnOrder = order;
-      state.currentTurnIndex = 0;
-
-      resetTimer();
-      setupTurnShield();
-    }
-
-    function setupTurnShield() {
-      const pIdx = state.turnOrder[state.currentTurnIndex];
-      document.getElementById('shieldPlayerName').textContent = state.playerNames[pIdx];
-      showScreen('shield');
-    }
-
-    function revealSecretRole() {
-      playSound('reveal');
-      const pIdx = state.turnOrder[state.currentTurnIndex];
-      const isImposter = (pIdx === state.imposterIndex);
-      const isDunce = (state.gameMode === 'double_trouble' && pIdx === state.dunceIndex);
-
-      const secretBox = document.getElementById('secretBox');
-      const roleBadge = document.getElementById('roleBadge');
-      const wordDisplay = document.getElementById('secretWordDisplay');
-      const tipBox = document.getElementById('revealTipBox');
-      
-      document.getElementById('revealCategoryLabel').textContent = `Category: ${state.currentCategory.name}`;
-
-      if (state.gameMode === 'double_trouble') {
-        if (isImposter) {
-          secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'CAMO DUDE 🥸';
-          wordDisplay.textContent = '❓ NO HINT';
-          tipBox.textContent = "There is also a DUNCE with a fake word. Listen to clues to deduce the secret!";
-        } else if (isDunce) {
-          secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'INSIDER 🤫';
-          wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
-        } else {
-          secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'INSIDER 🤫';
-          wordDisplay.textContent = state.secretWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
-        }
-      } else if (isImposter) {
-        if (state.gameMode === 'decoy') {
-          secretBox.className = 'secret-box insider';
-          roleBadge.textContent = 'INSIDER 🤫';
-          wordDisplay.textContent = state.decoyWordObj.secret;
-          tipBox.textContent = `Say ONE word related to "${state.decoyWordObj.secret}".`;
-        } else if (state.gameMode === 'no_hint') {
-          secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'CAMO DUDE (OR DUDETTE) 🥸';
-          wordDisplay.textContent = '❓ NO HINT';
-          tipBox.textContent = "Listen closely to everyone's clues during discussion to deduce the secret word and blend in!";
-        } else {
-          secretBox.className = 'secret-box imposter';
-          roleBadge.textContent = 'CAMO DUDE (OR DUDETTE) 🥸';
-          wordDisplay.textContent = `Hint: "${state.secretWordObj.hint}"`;
-          tipBox.textContent = "Don't be a dingus. Blend in!";
-        }
-      } else {
-        secretBox.className = 'secret-box insider';
-        roleBadge.textContent = 'INSIDER 🤫';
-        wordDisplay.textContent = state.secretWordObj.secret;
-        tipBox.textContent = `Say ONE word related to "${state.secretWordObj.secret}".`;
-      }
-      showScreen('reveal');
-    }
-
-    function advancePassAndPlay() {
-      playSound('click');
-      state.currentTurnIndex++;
-      if (state.currentTurnIndex < state.playerCount) {
-        setupTurnShield();
-      } else {
-        startDiscussionPhase();
-      }
-    }
-
-    function startDiscussionPhase() {
-      showScreen('discussion');
-      renderTurnOrderList();
-    }
-
-    function renderTurnOrderList() {
-      const turnList = document.getElementById('turnOrderList');
-      turnList.innerHTML = '';
-      state.turnOrder.forEach((pIdx, pos) => {
-        const item = document.createElement('div');
-        item.className = 'turn-item';
-        item.innerHTML = `
-          <span class="turn-num">${pos + 1}</span>
-          <span style="font-size:
+// Massive word bank: Over 1,600 entries! Expanded heavily with 1-word hints for Camo Dude
+
+const CATEGORIES = [
+  {
+    id: "animals",
+    name: "Animals 🦁",
+    icon: "🦁",
+    words: [
+      { secret: "Elephant", hint: "Mammal" },
+      { secret: "Dolphin", hint: "Ocean" },
+      { secret: "Dolphin", hint: "Water" },
+      { secret: "Penguin", hint: "Bird" },
+      { secret: "Penguin", hint: "Water" },
+      { secret: "Kangaroo", hint: "Pouch" },
+      { secret: "Kangaroo", hint: "Tail" },
+      { secret: "Tyrannosaurus Rex", hint: "Movie" },
+      { secret: "Triceretops", hint: "Horns" },
+      { secret: "Eagle", hint: "Country" },
+      { secret: "Cheetah", hint: "Skinny" },
+      { secret: "Octopus", hint: "Weird" },
+      { secret: "Octopus", hint: "Unique" },
+      { secret: "Giraffe", hint: "Safari" },
+      { secret: "Giraffe", hint: "Camo" },
+      { secret: "Chameleon", hint: "Reptile" },
+      { secret: "Grizzly Bear", hint: "Forest" },
+      { secret: "Shark", hint: "Marine" },
+      { secret: "Flamingo", hint: "Pink" },
+      { secret: "Flamingo", hint: "Lawn" },
+      { secret: "Koala", hint: "Eucalyptus" },
+      { secret: "Sloth", hint: "Slow" },
+      { secret: "King Cobra", hint: "Venomous" },
+      { secret: "Timber Wolf", hint: "Pack" },
+      { secret: "Platypus", hint: "Egg" },
+      { secret: "Beaver", hint: "Dam" },
+      { secret: "Peacock", hint: "Feathers" },
+      { secret: "Hippopotamus", hint: "River" },
+      { secret: "Chimpanzee", hint: "Primate" },
+      { secret: "Crocodile", hint: "Swamp" },
+      { secret: "Hedgehog", hint: "Spikes" },
+      { secret: "Chinchilla", hint: "Fur" },
+      { secret: "Gorilla", hint: "Jungle" },
+      { secret: "Panda", hint: "Bamboo" },
+      { secret: "Lion", hint: "Majestic" },
+      { secret: "Tiger", hint: "Stripes" },
+      { secret: "Tiger", hint: "Scary" },
+      { secret: "Zebra", hint: "Africa" },
+      { secret: "Rhinoceros", hint: "Horn" },
+      { secret: "Rhinoceros", hint: "Land" },
+      { secret: "Polar Bear", hint: "Arctic" },
+      { secret: "Polar Bear", hint: "Big" },      
+      { secret: "Camel", hint: "Water" },
+      { secret: "Camel", hint: "Ugly" },
+      { secret: "Llama", hint: "Wool" },
+      { secret: "Walrus", hint: "Tusks" },
+      { secret: "Seahorse", hint: "Coral" },
+      { secret: "Jellyfish", hint: "Sting" },
+      { secret: "Stingray", hint: "Flat" },
+      { secret: "Blue Whale", hint: "Giant" },
+      { secret: "Hummingbird", hint: "Tiny" },
+      { secret: "Owl", hint: "Nocturnal" },
+      { secret: "Falcon", hint: "Fast" },
+      { secret: "Pelican", hint: "Beak" },
+      { secret: "Toucan", hint: "Tropical" },
+      { secret: "Parrot", hint: "Feathers" },
+      { secret: "Ostrich", hint: "Tall" },
+      { secret: "Komodo Dragon", hint: "Lizard" },
+      { secret: "Iguana", hint: "Scales" },
+      { secret: "Gecko", hint: "Sticky" },
+      { secret: "Chameleon", hint: "Camouflage" },
+      { secret: "Alligator", hint: "Jaws" },
+      { secret: "Sea Turtle", hint: "Shell" },
+      { secret: "Frog", hint: "Amphibian" },
+      { secret: "Salamander", hint: "Moist" },
+      { secret: "Axolotl", hint: "Gill" },
+      { secret: "Otter", hint: "River" },
+      { secret: "Meerkat", hint: "Burrow" },
+      { secret: "Lemur", hint: "Tail" },
+      { secret: "Baboon", hint: "Monkey" },
+      { secret: "Orangutan", hint: "Ape" },
+      { secret: "Gibbon", hint: "Swinging" },
+      { secret: "Snow Leopard", hint: "Mountains" },
+      { secret: "Jaguar", hint: "Spots" },
+      { secret: "Panther", hint: "Dark" },
+      { secret: "Puma", hint: "Mountain" },
+      { secret: "Hyena", hint: "Scavenger" },
+      { secret: "Fox", hint: "Cunning" },
+      { secret: "Coyote", hint: "Howl" },
+      { secret: "Dingo", hint: "Wild" },
+      { secret: "Badger", hint: "Burrower" },
+      { secret: "Wolverine", hint: "Fierce" },
+      { secret: "Skunk", hint: "Smell" },
+      { secret: "Raccoon", hint: "Mask" },
+      { secret: "Opossum", hint: "Marsupial" },
+      { secret: "Armadillo", hint: "Armor" },
+      { secret: "Porcupine", hint: "Quills" },
+      { secret: "Capybara", hint: "Rodent" },
+      { secret: "Hamster", hint: "Cheeks" },
+      { secret: "Guinea Pig", hint: "Pet" },
+      { secret: "Ferret", hint: "Weasel" },
+      { secret: "Mole", hint: "Underground" },
+      { secret: "Bat", hint: "Wings" },
+      { secret: "Flying Squirrel", hint: "Glider" },
+      { secret: "Antelope", hint: "Horns" },
+      { secret: "Gazelle", hint: "Graceful" },
+      { secret: "Moose", hint: "Antlers" },
+      { secret: "Reindeer", hint: "Sleigh" },
+      { secret: "Bison", hint: "Buffalo" },
+      { secret: "Yak", hint: "Himalayas" },
+      { secret: "Wild Boar", hint: "Tusks" },
+      { secret: "Tapir", hint: "Trunk" },
+      { secret: "Manatee", hint: "Cow" },
+      { secret: "Narwhal", hint: "Unicorn" },
+      { secret: "Orca", hint: "Killer" },
+      { secret: "Lobster", hint: "Claws" },
+      { secret: "Crab", hint: "Pinch" },
+      { secret: "Squid", hint: "Ink" },
+      { secret: "Chameleon", hint: "Camo" },
+      { secret: "Tarantula", hint: "Legs" },
+      { secret: "Scorpion", hint: "Edible" },
+      { secret: "Ant", hint: "Strong" },
+      { secret: "Ant", hint: "Many" },
+      { secret: "Butterfly", hint: "Wanted" },
+      { secret: "Snail", hint: "Shell" },
+      { secret: "Slug", hint: "Slime" },
+      { secret: "Ladybug", hint: "Spots" },
+      { secret: "Dragonfly", hint: "Hover" },
+      { secret: "Grasshopper", hint: "Jump" },
+      { secret: "Cricket", hint: "Chirp" },
+      { secret: "Praying Mantis", hint: "Insect" },
+      { secret: "Bee", hint: "Honey" },
+      { secret: "Wasp", hint: "Stinger" },
+      { secret: "Mosquito", hint: "Bite" },
+      { secret: "Cockroach", hint: "Pest" },
+      { secret: "Flea", hint: "Itch" },
+      { secret: "Tick", hint: "Bloodsucker" },
+      { secret: "Termite", hint: "Wood" },
+      { secret: "Earthworm", hint: "Dirt" },
+      { secret: "Leech", hint: "Sucker" },
+      { secret: "Starfish", hint: "Five-arms" },
+      { secret: "Sea Urchin", hint: "Spiny" },
+      { secret: "Sand Dollar", hint: "Beach" },
+      { secret: "Sponge", hint: "Absorb" },
+      { secret: "Clam", hint: "Pearl" },
+      { secret: "Oyster", hint: "Shellfish" },
+      { secret: "Mussel", hint: "Bivalve" },
+      { secret: "Scallop", hint: "Seafood" },
+      { secret: "Cuttlefish", hint: "Camouflage" },
+      { secret: "Nautilus", hint: "Spiral" },
+      { secret: "Shrimp", hint: "Crustacean" },
+      { secret: "Krill", hint: "Whale-food" },
+      { secret: "Barnacle", hint: "Boat-hull" },
+      { secret: "Toad", hint: "Warts" },
+      { secret: "Newt", hint: "Amphibian" },
+      { secret: "Python", hint: "Constrictor" },
+      { secret: "Boa", hint: "Snake" },
+      { secret: "Anaconda", hint: "Jungle" },
+      { secret: "Emu", hint: "Flightless" },
+      { secret: "Cassowary", hint: "Dangerous" },
+      { secret: "Kiwi", hint: "New-Zealand" },
+      { secret: "Albatross", hint: "Wingspan" },
+      { secret: "Heron", hint: "Wader" },
+      { secret: "Swan", hint: "Graceful" },
+      { secret: "Goose", hint: "Honk" },
+      { secret: "Duck", hint: "Quack" },
+      { secret: "Condor", hint: "Scavenger" },
+      { secret: "Hawk", hint: "Talons" },
+      { secret: "Pheasant", hint: "Gamebird" },
+      { secret: "Quail", hint: "Covey" },
+      { secret: "Turkey", hint: "Gobble" },
+      { secret: "Woodpecker", hint: "Tree-tapper" }
+    ]
+  },
+  {
+    id: "school_subjects",
+    name: "School Subjects 📚",
+    icon: "📚",
+    words: [
+      { secret: "Mathematics", hint: "Numbers" },
+      { secret: "Science", hint: "Experiments" },
+      { secret: "Geography", hint: "Maps" },
+      { secret: "Art Class", hint: "Drawing" },
+      { secret: "Physical Education", hint: "Fitness" },
+      { secret: "Backpack", hint: "Bag" },
+      { secret: "Microscope", hint: "Laboratory" },
+      { secret: "Calculator", hint: "Math" },
+      { secret: "Library", hint: "Books" },
+      { secret: "History", hint: "Past" },
+      { secret: "Music Class", hint: "Instruments" },
+      { secret: "Dictionary", hint: "Definitions" },
+      { secret: "Compass", hint: "Direction" },
+      { secret: "Protractor", hint: "Angles" },
+      { secret: "Laptop", hint: "Computer" },
+      { secret: "Textbook", hint: "Reading" },
+      { secret: "Cafeteria", hint: "Lunch" },
+      { secret: "Principal", hint: "Leader" },
+      { secret: "Recess", hint: "Playground" },
+      { secret: "Blackboard", hint: "Chalk" },
+      { secret: "Crayons", hint: "Coloring" },
+      { secret: "Drama Class", hint: "Acting" },
+      { secret: "Spelling Bee", hint: "Words" },
+      { secret: "Globe", hint: "Sphere" },
+      { secret: "Telescope", hint: "Stars" },
+      { secret: "Biology", hint: "Life" },
+      { secret: "Chemistry", hint: "Molecules" },
+      { secret: "Physics", hint: "Motion" },
+      { secret: "Geometry", hint: "Shapes" },
+      { secret: "Algebra", hint: "Variables" },
+      { secret: "Calculus", hint: "Derivatives" },
+      { secret: "Literature", hint: "Novels" },
+      { secret: "Grammar", hint: "Punctuation" },
+      { secret: "Spanish Class", hint: "Language" },
+      { secret: "French Class", hint: "Language" },
+      { secret: "Coding", hint: "Software" },
+      { secret: "Robotics", hint: "Automation" },
+      { secret: "Astronomy", hint: "Galaxies" },
+      { secret: "Geology", hint: "Rocks" },
+      { secret: "Psychology", hint: "Mind" },
+      { secret: "Economics", hint: "Finance" },
+      { secret: "Sociology", hint: "Society" },
+      { secret: "Philosophy", hint: "Ethics" },
+      { secret: "Journalism", hint: "Reporting" },
+      { secret: "Woodshop", hint: "Carpentry" },
+      { secret: "Home Economics", hint: "Cooking" },
+      { secret: "Band Class", hint: "Brass" },
+      { secret: "Choir", hint: "Singing" },
+      { secret: "Orchestra", hint: "Strings" },
+      { secret: "Pencil", hint: "Graphite" },
+      { secret: "Eraser", hint: "Rubber" },
+      { secret: "Notebook", hint: "Paper" },
+      { secret: "Highlighter", hint: "Neon" },
+      { secret: "Ruler", hint: "Measurement" },
+      { secret: "Scissors", hint: "Cutting" },
+      { secret: "Glue Stick", hint: "Adhesive" },
+      { secret: "Stapler", hint: "Fastener" },
+      { secret: "Folder", hint: "Organizer" },
+      { secret: "Binder", hint: "Rings" },
+      { secret: "Desk", hint: "Furniture" },
+      { secret: "Whiteboard", hint: "Marker" },
+      { secret: "Locker", hint: "Storage" },
+      { secret: "Gymnasium", hint: "Sports" },
+      { secret: "Auditorium", hint: "Stage" },
+      { secret: "Hallway", hint: "Corridor" },
+      { secret: "Report Card", hint: "Grades" },
+      { secret: "Diploma", hint: "Graduation" },
+      { secret: "Homework", hint: "Assignment" },
+      { secret: "Pop Quiz", hint: "Test" },
+      { secret: "Midterm Exam", hint: "Assessment" },
+      { secret: "Final Exam", hint: "Testing" },
+      { secret: "Science Fair", hint: "Poster" },
+      { secret: "Yearbook", hint: "Photos" },
+      { secret: "Field Trip", hint: "Excursion" },
+      { secret: "School Bus", hint: "Transit" },
+      { secret: "Mascot", hint: "Costume" },
+      { secret: "Hall Pass", hint: "Permit" },
+      { secret: "Detention", hint: "Punishment" },
+      { secret: "Substitute Teacher", hint: "Replacement" },
+      { secret: "Tutor", hint: "Help" },
+      { secret: "Classroom", hint: "Learning" },
+      { secret: "Lecture", hint: "Presentation" },
+      { secret: "Essay", hint: "Writing" },
+      { secret: "Poetry", hint: "Rhyme" },
+      { secret: "Vocabulary", hint: "Words" },
+      { secret: "Fractions", hint: "Division" },
+      { secret: "Decimals", hint: "Points" },
+      { secret: "Equations", hint: "Algebra" },
+      { secret: "Periodic Table", hint: "Elements" },
+      { secret: "DNA", hint: "Genetics" },
+      { secret: "Photosynthesis", hint: "Plants" },
+      { secret: "Gravity", hint: "Force" },
+      { secret: "Ecosystem", hint: "Nature" },
+      { secret: "Fossils", hint: "Prehistoric" },
+      { secret: "Latitude", hint: "Lines" },
+      { secret: "Longitude", hint: "Grid" },
+      { secret: "Continents", hint: "Landmasses" },
+      { secret: "Oceanography", hint: "Seas" },
+      { secret: "Meteorology", hint: "Weather" },
+      { secret: "Pen", hint: "Ink" },
+      { secret: "Marker", hint: "Felt-tip" },
+      { secret: "Flash Drive", hint: "USB" },
+      { secret: "Mouse", hint: "Click" },
+      { secret: "Keyboard", hint: "Typing" },
+      { secret: "Monitor", hint: "Screen" },
+      { secret: "Projector", hint: "Display" },
+      { secret: "Map", hint: "Geography" },
+      { secret: "Chart", hint: "Data" },
+      { secret: "Graph", hint: "Axis" },
+      { secret: "Easel", hint: "Canvas" },
+      { secret: "Paint", hint: "Colors" },
+      { secret: "Brush", hint: "Strokes" },
+      { secret: "Clay", hint: "Sculpting" },
+      { secret: "Kiln", hint: "Oven" },
+      { secret: "Canvas", hint: "Painting" },
+      { secret: "Sketchbook", hint: "Drawing" },
+      { secret: "Flute", hint: "Woodwind" },
+      { secret: "Clarinet", hint: "Reed" },
+      { secret: "Saxophone", hint: "Jazz" },
+      { secret: "Trumpet", hint: "Brass" },
+      { secret: "Trombone", hint: "Slide" },
+      { secret: "Tuba", hint: "Heavy" },
+      { secret: "Violin", hint: "Strings" },
+      { secret: "Viola", hint: "Orchestra" },
+      { secret: "Cello", hint: "Bow" },
+      { secret: "Bass", hint: "Low-pitch" },
+      { secret: "Piano", hint: "Keys" },
+      { secret: "Drums", hint: "Beat" },
+      { secret: "Cymbals", hint: "Crash" },
+      { secret: "Triangle", hint: "Percussion" },
+      { secret: "Tambourine", hint: "Jingle" },
+      { secret: "Recorder", hint: "Wind" },
+      { secret: "Xylophone", hint: "Mallets" },
+      { secret: "Whistle", hint: "Ref" },
+      { secret: "Stopwatch", hint: "Timer" },
+      { secret: "Bleachers", hint: "Seating" },
+      { secret: "Track", hint: "Running" },
+      { secret: "Field", hint: "Grass" },
+      { secret: "Court", hint: "Basketball" },
+      { secret: "Net", hint: "Volleyball" },
+      { secret: "Goal", hint: "Soccer" },
+      { secret: "Hoop", hint: "Rim" },
+      { secret: "Ball", hint: "Bounce" },
+      { secret: "Bat", hint: "Swing" },
+      { secret: "Racket", hint: "Tennis" },
+      { secret: "Paddle", hint: "Ping-Pong" },
+      { secret: "Club", hint: "Golf" },
+      { secret: "Stick", hint: "Hockey" },
+      { secret: "Puck", hint: "Ice" }
+    ]
+  },
+  {
+    id: "food_treats",
+    name: "Food & Treats 🍕",
+    icon: "🍕",
+    words: [
+      { secret: "Pizza", hint: "Cheese" },
+      { secret: "Ice Cream", hint: "Dessert" },
+      { secret: "Spaghetti", hint: "Pasta" },
+      { secret: "Hamburger", hint: "Sandwich" },
+      { secret: "Watermelon", hint: "Fruit" },
+      { secret: "Pancakes", hint: "Breakfast" },
+      { secret: "Tacos", hint: "Mexican" },
+      { secret: "Cupcake", hint: "Bakery" },
+      { secret: "Popcorn", hint: "Snack" },
+      { secret: "French Fries", hint: "Potatoes" },
+      { secret: "Chocolate", hint: "Sweet" },
+      { secret: "Sushi", hint: "Seafood" },
+      { secret: "Donut", hint: "Fried" },
+      { secret: "Hot Dog", hint: "Unknown" },
+      { secret: "Waffles", hint: "Breakfast" },
+      { secret: "Pretzel", hint: "Salty" },
+      { secret: "Pineapple", hint: "Tropical" },
+      { secret: "Crispy Bacon", hint: "Breakfast" },
+      { secret: "Loaded Nachos", hint: "Junk" },
+      { secret: "Fruit Smoothie", hint: "Blended" },
+      { secret: "Cheesecake", hint: "Dairy" },
+      { secret: "Bean Burrito", hint: "Wrap" },
+      { secret: "Bean Burrito", hint: "Mexican" },
+      { secret: "Cotton Candy", hint: "Fair" },
+      { secret: "Steamed Dumplings", hint: "Asian" },
+      { secret: "Meatballs", hint: "Sauce" },
+      { secret: "Apple Pie", hint: "Cinnamon" },
+      { secret: "Chocolate Chip Cookie", hint: "Baking" },
+      { secret: "Brownie", hint: "Fudge" },
+      { secret: "Churros", hint: "Sugar" },
+      { secret: "Macaroni and Cheese", hint: "Cheddar" },
+      { secret: "Grilled Cheese", hint: "Toast" },
+      { secret: "Chicken Nuggets", hint: "Dipping" },
+      { secret: "Barbecue Ribs", hint: "Smoky" },
+      { secret: "Steak", hint: "Grill" },
+      { secret: "Fried Chicken", hint: "Crispy" },
+      { secret: "Lasagna", hint: "Layers" },
+      { secret: "Ramen", hint: "Noodles" },
+      { secret: "Pho", hint: "Broth" },
+      { secret: "Quesadilla", hint: "Melted" },
+      { secret: "Guacamole", hint: "Avocado" },
+      { secret: "Salsa", hint: "Dip" },
+      { secret: "Garlic Bread", hint: "Butter" },
+      { secret: "Mashed Potatoes", hint: "Gravy" },
+      { secret: "Onion Rings", hint: "Battered" },
+      { secret: "Clam Chowder", hint: "Soup" },
+      { secret: "Tomato Soup", hint: "Bowl" },
+      { secret: "Caesar Salad", hint: "Croutons" },
+      { secret: "Fruit Salad", hint: "Berries" },
+      { secret: "Strawberry", hint: "Red" },
+      { secret: "Banana", hint: "Peel" },
+      { secret: "Mango", hint: "Juicy" },
+      { secret: "Grapes", hint: "Vine" },
+      { secret: "Peach", hint: "Fuzzy" },
+      { secret: "Blueberry", hint: "Antioxidant" },
+      { secret: "Cherries", hint: "Pits" },
+      { secret: "Avocado", hint: "Green" },
+      { secret: "Broccoli", hint: "Vegetable" },
+      { secret: "Carrot", hint: "Orange" },
+      { secret: "Sweet Corn", hint: "Cob" },
+      { secret: "Popcorn Chicken", hint: "Bite-sized" },
+      { secret: "French Toast", hint: "Brioche" },
+      { secret: "Bagel", hint: "Cream-cheese" },
+      { secret: "Croissant", hint: "Flaky" },
+      { secret: "Muffin", hint: "Blueberry" },
+      { secret: "Omelet", hint: "Eggs" },
+      { secret: "Cereal", hint: "Milk" },
+      { secret: "Oatmeal", hint: "Oats" },
+      { secret: "Yogurt", hint: "Probiotic" },
+      { secret: "Marshmallow", hint: "Fluffy" },
+      { secret: "S'mores", hint: "Campfire" },
+      { secret: "Gummy Bears", hint: "Candy" },
+      { secret: "Lollipop", hint: "Stick" },
+      { secret: "Jelly Beans", hint: "Assorted" },
+      { secret: "Peanut Butter", hint: "Spread" },
+      { secret: "Nutella", hint: "Hazelnut" },
+      { secret: "Popsicle", hint: "Frozen" },
+      { secret: "Sundae", hint: "Hot-fudge" },
+      { secret: "Milkshake", hint: "Diner" },
+      { secret: "Lemonade", hint: "Citrus" },
+      { secret: "Iced Tea", hint: "Refreshing" },
+      { secret: "Hot Chocolate", hint: "Cocoa" },
+      { secret: "Bubble Tea", hint: "Boba" },
+      { secret: "Espresso", hint: "Coffee" },
+      { secret: "Pecan Pie", hint: "Nuts" },
+      { secret: "Macarons", hint: "French" },
+      { secret: "Eclair", hint: "Cream" },
+      { secret: "Gelato", hint: "Italian" },
+      { secret: "Fondue", hint: "Dipper" },
+      { secret: "Spring Rolls", hint: "Crispy" },
+      { secret: "Teriyaki Chicken", hint: "Glaze" },
+      { secret: "Curry", hint: "Spices" },
+      { secret: "Pancit", hint: "Noodle" },
+      { secret: "Empanada", hint: "Pastry" },
+      { secret: "Hummus", hint: "Chickpeas" },
+      { secret: "Pita Bread", hint: "Pocket" },
+      { secret: "Falafel", hint: "Fried" },
+      { secret: "Kebabs", hint: "Skewers" },
+      { secret: "Baklava", hint: "Honey" },
+      { secret: "Clam Bake", hint: "Seafood" },
+      { secret: "Hot Wings", hint: "Spicy" },
+      { secret: "Burrito Bowl", hint: "Rice" },
+      { secret: "Fried Rice", hint: "Wok" },
+      { secret: "Sweet Potato", hint: "Yam" },
+      { secret: "Hash Browns", hint: "Breakfast" },
+      { secret: "Sausage", hint: "Links" },
+      { secret: "Bacon", hint: "Crispy" },
+      { secret: "Pomegranate", hint: "Seeds" },
+      { secret: "Tangerine", hint: "Citrus" },
+      { secret: "Clementine", hint: "Orange" },
+      { secret: "Grapefruit", hint: "Tart" },
+      { secret: "Lime", hint: "Sour" },
+      { secret: "Lemon", hint: "Yellow" },
+      { secret: "Raspberry", hint: "Red" },
+      { secret: "Blackberry", hint: "Dark" },
+      { secret: "Cranberry", hint: "Bog" },
+      { secret: "Apricot", hint: "Stone" },
+      { secret: "Plum", hint: "Purple" },
+      { secret: "Nectarine", hint: "Smooth" },
+      { secret: "Fig", hint: "Newton" },
+      { secret: "Date", hint: "Palm" },
+      { secret: "Olive", hint: "Oil" },
+      { secret: "Coconut", hint: "Shell" },
+      { secret: "Almond", hint: "Nut" },
+      { secret: "Walnut", hint: "Brain-shaped" },
+      { secret: "Pecan", hint: "Pie" },
+      { secret: "Cashew", hint: "Curved" },
+      { secret: "Pistachio", hint: "Green" },
+      { secret: "Macadamia", hint: "Cookie" },
+      { secret: "Peanut", hint: "Legume" },
+      { secret: "Sunflower Seed", hint: "Spit" },
+      { secret: "Pumpkin Seed", hint: "Roasted" },
+      { secret: "Chia Seed", hint: "Pudding" },
+      { secret: "Flax Seed", hint: "Healthy" },
+      { secret: "Corn", hint: "Grain" },
+      { secret: "Rice", hint: "White" },
+      { secret: "Pasta", hint: "Italian" },
+      { secret: "Noodle", hint: "Slurp" },
+      { secret: "Bread", hint: "Loaf" },
+      { secret: "Bun", hint: "Burger" },
+      { secret: "Roll", hint: "Dinner" },
+      { secret: "Biscuit", hint: "Gravy" },
+      { secret: "Scone", hint: "Tea" },
+      { secret: "Crepe", hint: "Thin" }
+    ]
+  },
+  {
+    id: "jobs_careers",
+    name: "Jobs & Careers 👩‍🚀",
+    icon: "👩‍🚀",
+    words: [
+      { secret: "Astronaut", hint: "Spacecraft" },
+      { secret: "Firefighter", hint: "Rescue" },
+      { secret: "Veterinarian", hint: "Animals" },
+      { secret: "Chef", hint: "Cooking" },
+      { secret: "Pilot", hint: "Airplane" },
+      { secret: "Police Officer", hint: "Safety" },
+      { secret: "Architect", hint: "Buildings" },
+      { secret: "Scientist", hint: "Research" },
+      { secret: "Detective", hint: "Investigation" },
+      { secret: "Musician", hint: "Songs" },
+      { secret: "Athlete", hint: "Sports" },
+      { secret: "Teacher", hint: "Classroom" },
+      { secret: "Surgeon", hint: "Hospital" },
+      { secret: "Electrician", hint: "Wiring" },
+      { secret: "Judge", hint: "Courtroom" },
+      { secret: "Photographer", hint: "Camera" },
+      { secret: "Farmer", hint: "Agriculture" },
+      { secret: "Plumber", hint: "Pipes" },
+      { secret: "Dentist", hint: "Teeth" },
+      { secret: "Marine Biologist", hint: "Ocean" },
+      { secret: "Journalist", hint: "News" },
+      { secret: "Mechanic", hint: "Engines" },
+      { secret: "Librarian", hint: "Catalog" },
+      { secret: "Baker", hint: "Oven" },
+      { secret: "Archeologist", hint: "Fossils" },
+      { secret: "Software Engineer", hint: "Code" },
+      { secret: "Graphic Designer", hint: "Visuals" },
+      { secret: "Video Game Developer", hint: "Gaming" },
+      { secret: "Flight Attendant", hint: "Cabin" },
+      { secret: "Paramedic", hint: "Ambulance" },
+      { secret: "Nurse", hint: "Care" },
+      { secret: "Pharmacist", hint: "Medicine" },
+      { secret: "Optometrist", hint: "Vision" },
+      { secret: "Physical Therapist", hint: "Rehabilitation" },
+      { secret: "Psychiatrist", hint: "Mental" },
+      { secret: "Lawyer", hint: "Legal" },
+      { secret: "Paralegal", hint: "Documents" },
+      { secret: "Politician", hint: "Vote" },
+      { secret: "Mayor", hint: "Vote" },
+      { secret: "Governor", hint: "State" },
+      { secret: "Diplomat", hint: "Embassy" },
+      { secret: "Commercial Diver", hint: "Underwater" },
+      { secret: "Coast Guard", hint: "Maritime" },
+      { secret: "Soldier", hint: "Military" },
+      { secret: "Park Ranger", hint: "Wilderness" },
+      { secret: "Conservationist", hint: "Ecology" },
+      { secret: "Zoologist", hint: "Science" },
+      { secret: "Botanist", hint: "Science" },
+      { secret: "Botanist", hint: "Green" },
+      { secret: "Astronomer", hint: "Science" },
+      { secret: "Geologist", hint: "Scientist" },
+      { secret: "Meteorologist", hint: "Check" },
+      { secret: "Meteorologist", hint: "Scientist" },
+      { secret: "Chemist", hint: "Molecules" },
+      { secret: "Chemist", hint: "Science" },
+      { secret: "Physicist", hint: "Atoms" },
+      { secret: "Physicist", hint: "Science" },
+      { secret: "Banker", hint: "Finance" },
+      { secret: "Accountant", hint: "Taxes" },
+      { secret: "Stock Broker", hint: "Trading" },
+      { secret: "Real Estate Agent", hint: "Houses" },
+      { secret: "Interior Designer", hint: "Decor" },
+      { secret: "Landscape Architect", hint: "Gardens" },
+      { secret: "Construction Worker", hint: "Hardhat" },
+      { secret: "Welder", hint: "Mask" },
+      { secret: "Welder", hint: "Hot" },  
+      { secret: "Carpenter", hint: "Blue Collar" },
+      { secret: "Carpenter", hint: "Tools" },      
+      { secret: "Blacksmith", hint: "Anvil" },
+      { secret: "Blacksmith", hint: "Tools" },
+      { secret: "Machinist", hint: "Tools" },
+      { secret: "Automotive Engineer", hint: "Tools" },
+      { secret: "Train Conductor", hint: "Time" },
+      { secret: "Bus Driver", hint: "Travel" },
+      { secret: "Ship Captain", hint: "Travel" },
+      { secret: "Deep Sea Fisherman", hint: "Danger" },
+      { secret: "Barista", hint: "Tall" },
+      { secret: "Manager", hint: "Store" },
+      { secret: "Florist", hint: "Bouquet" },
+      { secret: "Hair Stylist", hint: "Scissors" },
+      { secret: "Makeup Artist", hint: "Cosmetics" },
+      { secret: "Fashion Designer", hint: "Runway" },
+      { secret: "Model", hint: "Photoshoot" },
+      { secret: "Actor", hint: "Hollywood" },
+      { secret: "Movie Director", hint: "Film" },
+      { secret: "Stunt Double", hint: "Action" },
+      { secret: "Voice Actor", hint: "Microphone" },
+      { secret: "Audio Engineer", hint: "Soundboard" },
+      { secret: "Conductor", hint: "Symphony" },
+      { secret: "Dancer", hint: "Choreography" },
+      { secret: "Comedian", hint: "Humor" },
+      { secret: "Magician", hint: "Illusion" },
+      { secret: "Circus Acrobat", hint: "Trapeze" },
+      { secret: "Personal Trainer", hint: "Fitness" },
+      { secret: "Lifeguard", hint: "Poolside" },
+      { secret: "Ski Instructor", hint: "Slopes" },
+      { secret: "Tour Guide", hint: "Sightseeing" },
+      { secret: "Translator", hint: "Languages" },
+      { secret: "Author", hint: "Books" },
+      { secret: "Poet", hint: "Verses" },
+      { secret: "Editor", hint: "Publishing" },
+      { secret: "Event Planner", hint: "Parties" },
+      { secret: "Hotel Manager", hint: "Hospitality" },
+      { secret: "Flight Engineer", hint: "Aircraft" },
+      { secret: "Flight Controler", hint: "Tower" },
+      { secret: "Cryptographer", hint: "Ciphers" },
+      { secret: "Programmer", hint: "Code" },
+      { secret: "Animator", hint: "Cartoons" },
+      { secret: "Illustrator", hint: "Drawing" },
+      { secret: "Web Designer", hint: "Internet" },
+      { secret: "Data Scientist", hint: "Numbers" },
+      { secret: "Database Admin", hint: "Servers" },
+      { secret: "Network Engineer", hint: "Wi-Fi" },
+      { secret: "Systems Analyst", hint: "IT" },
+      { secret: "Security Guard", hint: "Patrol" },
+      { secret: "Bouncer", hint: "Club" },
+      { secret: "Bodyguard", hint: "Protect" },
+      { secret: "Private Investigator", hint: "Snooping" },
+      { secret: "Bounty Hunter", hint: "Wanted" },
+      { secret: "Spy", hint: "Undercover" },
+      { secret: "Secret Agent", hint: "007" },
+      { secret: "Tailor", hint: "Suits" },
+      { secret: "Seamstress", hint: "Sewing" },
+      { secret: "Cobbler", hint: "Shoes" },
+      { secret: "Shoemaker", hint: "Boots" },
+      { secret: "Jeweler", hint: "Diamonds" },
+      { secret: "Watchmaker", hint: "Ticks" },
+      { secret: "Clockmaker", hint: "Time" },
+      { secret: "Locksmith", hint: "Keys" },
+      { secret: "Glassblower", hint: "Heat" },
+      { secret: "Potter", hint: "Clay" },
+      { secret: "Weaver", hint: "Loom" },
+      { secret: "Sculptor", hint: "Statues" },
+      { secret: "Painter", hint: "Canvas" },
+      { secret: "Muralist", hint: "Wall" },
+      { secret: "Graffiti Artist", hint: "Spray" },
+      { secret: "Tattoo Artist", hint: "Ink" },
+      { secret: "Piercer", hint: "Needle" },
+      { secret: "Barber", hint: "Haircut" },
+      { secret: "Hairdresser", hint: "Salon" },
+      { secret: "Stylist", hint: "Fashion" },
+      { secret: "Manicurist", hint: "Nails" },
+      { secret: "Pedicurist", hint: "Toes" },
+      { secret: "Esthetician", hint: "Skincare" },
+      { secret: "Massage Therapist", hint: "Rub" },
+      { secret: "Chiropractor", hint: "Bones" },
+      { secret: "Acupuncturist", hint: "Needles" },
+      { secret: "Dietitian", hint: "Food" },
+      { secret: "Nutritionist", hint: "Health" },
+      { secret: "Coach", hint: "Team" },
+      { secret: "Referee", hint: "Whistle" },
+      { secret: "Umpire", hint: "Baseball" }
+    ]
+  },
+  {
+    id: "sports_games",
+    name: "Sports & Games 🏀",
+    icon: "🏀",
+    words: [
+      { secret: "Basketball", hint: "Dribble" },
+      { secret: "Soccer", hint: "Kicking" },
+      { secret: "Swimming", hint: "Water" },
+      { secret: "Gymnastics", hint: "Acrobatics" },
+      { secret: "Skateboarding", hint: "Wheels" },
+      { secret: "Ice Hockey", hint: "Rink" },
+      { secret: "Baseball", hint: "Diamond" },
+      { secret: "Tennis", hint: "Racket" },
+      { secret: "Camping", hint: "Outdoors" },
+      { secret: "Camping", hint: "Tarp" },
+      { secret: "Karate", hint: "Physical" },
+      { secret: "Bowling", hint: "Ball" },
+      { secret: "Skiing", hint: "Winter" },
+      { secret: "Volleyball", hint: "Net" },
+      { secret: "Golf", hint: "Course" },
+      { secret: "Archery", hint: "Bow" },
+      { secret: "Snowboarding", hint: "Winter" },
+      { secret: "Surfing", hint: "Waves" },
+      { secret: "Dodgeball", hint: "Throw" },
+      { secret: "Rock Climbing", hint: "Harness" },
+      { secret: "Cycling", hint: "Bicycle" },
+      { secret: "Fencing", hint: "Sword" },
+      { secret: "Figure Skating", hint: "Ice" },
+      { secret: "Table Tennis", hint: "Paddle" },
+      { secret: "Track & Field", hint: "Running" },
+      { secret: "Kayaking", hint: "Paddle" },
+      { secret: "American Football", hint: "Touchdown" },
+      { secret: "Rugby", hint: "Scrum" },
+      { secret: "Cricket", hint: "Wicket" },
+      { secret: "Lacrosse", hint: "Mesh" },
+      { secret: "Badminton", hint: "Shuttlecock" },
+      { secret: "Squash", hint: "Racquet" },
+      { secret: "Handball", hint: "Court" },
+      { secret: "Water Polo", hint: "Pool" },
+      { secret: "Synchronized Swimming", hint: "Routine" },
+      { secret: "Diving", hint: "Springboard" },
+      { secret: "Rowing", hint: "Oars" },
+      { secret: "Sailing", hint: "Yacht" },
+      { secret: "Windsurfing", hint: "Sailboard" },
+      { secret: "Wakeboarding", hint: "Towboat" },
+      { secret: "Scuba Diving", hint: "Oxygen" },
+      { secret: "Triathlon", hint: "Endurance" },
+      { secret: "Marathon", hint: "26-Miles" },
+      { secret: "Sprint", hint: "Dash" },
+      { secret: "High Jump", hint: "Bar" },
+      { secret: "Pole Vault", hint: "Pole" },
+      { secret: "Long Jump", hint: "Sandpit" },
+      { secret: "Shot Put", hint: "Heavy" },
+      { secret: "Javelin", hint: "Spear" },
+      { secret: "Weightlifting", hint: "Strong" },
+      { secret: "Powerlifting", hint: "Strong" },
+      { secret: "Baseball", hint: "Workout" },
+      { secret: "Boxing", hint: "Combat" },
+      { secret: "Judo", hint: "Tatami" },
+      { secret: "Taekwondo", hint: "Combat" },
+      { secret: "Brazilian Jiu-Jitsu", hint: "Combat" },
+      { secret: "Wrestling", hint: "Combat" },
+      { secret: "Sumo", hint: "Ring" },
+      { secret: "Kickboxing", hint: "Combat" },
+      { secret: "Muay Thai", hint: "Combat" },
+      { secret: "BMX", hint: "Ramps" },
+      { secret: "Motocross", hint: "Dirtbike" },
+      { secret: "Formula 1", hint: "Racecar" },
+      { secret: "NASCAR", hint: "Speedway" },
+      { secret: "Rally Racing", hint: "Offroad" },
+      { secret: "Go-Karting", hint: "Circuit" },
+      { secret: "Horse Racing", hint: "Jockey" },
+      { secret: "Equestrian", hint: "Jumping" },
+      { secret: "Polo", hint: "Mallet" },
+      { secret: "Rodeo", hint: "Dangerous" },
+      { secret: "Bobsled", hint: "Winter" },
+      { secret: "Luge", hint: "Dangerous" },
+      { secret: "Curling", hint: "Broom" },
+      { secret: "Speed Skating", hint: "Oval" },
+      { secret: "Biathlon", hint: "Rifle" },
+      { secret: "Parkour", hint: "Jump" },
+      { secret: "Disc Golf", hint: "Basket" },
+      { secret: "Ultimate Frisbee", hint: "Disc" },
+      { secret: "Billiards", hint: "Cue" },
+      { secret: "Snooker", hint: "Table" },
+      { secret: "Darts", hint: "Bullseye" },
+      { secret: "Foosball", hint: "Indoor" },
+      { secret: "Air Hockey", hint: "Indoor" },
+      { secret: "Shuffleboard", hint: "Puck" },
+      { secret: "Bocce Ball", hint: "Lawn" },
+      { secret: "Croquet", hint: "Mallet" },
+      { secret: "Horseshoes", hint: "Animal" },
+      { secret: "Cornhole", hint: "Toss" },
+      { secret: "Pickleball", hint: "Ball" },
+      { secret: "Paddleball", hint: "Ball" },
+      { secret: "Racquetball", hint: "Ball" },
+      { secret: "Laser Tag", hint: "Fun" },
+      { secret: "Paintball", hint: "Ouch" },
+      { secret: "Airsoft", hint: "Ouch" },
+      { secret: "Roller Derby", hint: "Skates" },
+      { secret: "Cheerleading", hint: "Pompoms" },
+      { secret: "Breakdancing", hint: "Hip-hop" },
+      { secret: "Tug of War", hint: "Rope" },
+      { secret: "Hacky Sack", hint: "Footbag" },
+      { secret: "Slacklining", hint: "Balance" },
+      { secret: "Trampolining", hint: "Bounce" },
+      { secret: "Bungee Jumping", hint: "Cord" },
+      { secret: "Tetherball", hint: "Pole" },
+      { secret: "Kickball", hint: "Playground" },
+      { secret: "Four Square", hint: "Bounce" },
+      { secret: "Hopscotch", hint: "Chalk" },
+      { secret: "Jump Rope", hint: "Skip" },
+      { secret: "Tag", hint: "You're-It" },
+      { secret: "Hide and Seek", hint: "Counting" },
+      { secret: "Red Rover", hint: "Over" },
+      { secret: "Simon Says", hint: "Listen" },
+      { secret: "Musical Chairs", hint: "Sit" },
+      { secret: "Duck Duck Goose", hint: "Circle" },
+      { secret: "Capture the Flag", hint: "Base" },
+      { secret: "Marco Polo", hint: "Pool" },
+      { secret: "Snorkeling", hint: "Mask" },
+      { secret: "Fishing", hint: "Rod" },
+      { secret: "Hunting", hint: "Woods" },
+      { secret: "Trapping", hint: "Bait" },
+      { secret: "Foraging", hint: "Berries" },
+      { secret: "Hiking", hint: "Trail" },
+      { secret: "Backpacking", hint: "Wilderness" },
+      { secret: "Mountaineering", hint: "Summit" },
+      { secret: "Bouldering", hint: "Rocks" },
+      { secret: "Ice Climbing", hint: "Picks" },
+      { secret: "Caving", hint: "Spelunking" },
+      { secret: "Geocaching", hint: "GPS" },
+      { secret: "Orienteering", hint: "Compass" },
+      { secret: "Freerunning", hint: "Agility" },
+      { secret: "Longboarding", hint: "Cruising" },
+      { secret: "Roller Skating", hint: "Rink" },
+      { secret: "Inline Skating", hint: "Blades" },
+      { secret: "Sledding", hint: "Winter" },
+      { secret: "Tobogganing", hint: "Winter" },
+      { secret: "Tubing", hint: "River" },
+      { secret: "Rafting", hint: "Whitewater" },
+      { secret: "Canoeing", hint: "Paddles" },
+      { secret: "Water Skiing", hint: "Lake" },
+      { secret: "Jet Skiing", hint: "Motor" },
+      { secret: "Snowmobiling", hint: "Winter" },
+      { secret: "ATV Riding", hint: "Off-road" },
+      { secret: "Dirt Biking", hint: "Mud" },
+      { secret: "Gym Class", hint: "P.E." },
+      { secret: "Tai Chi", hint: "Slow" },
+      { secret: "Yoga", hint: "Stretch" },
+      { secret: "Pilates", hint: "Core" }
+    ]
+  },
+  {
+    id: "awesome_places",
+    name: "Awesome Places 🏰",
+    icon: "🏰",
+    words: [
+      { secret: "Amusement Park", hint: "Rides" },
+      { secret: "Outer Space", hint: "Planets" },
+      { secret: "Coral Reef", hint: "Underwater" },
+      { secret: "Rainforest", hint: "Jungle" },
+      { secret: "Pyramids", hint: "Monuments" },
+      { secret: "Volcano", hint: "Lava" },
+      { secret: "Airport", hint: "Flights" },
+      { secret: "Museum", hint: "Exhibits" },
+      { secret: "Zoo Park", hint: "Animals" },
+      { secret: "Movie Theater", hint: "Cinema" },
+      { secret: "Castle", hint: "Kingdom" },
+      { secret: "Tropical Island", hint: "Beach" },
+      { secret: "Grand Canyon", hint: "Gorge" },
+      { secret: "Space Station", hint: "Orbit" },
+      { secret: "Water Park", hint: "Slides" },
+      { secret: "Lighthouse", hint: "Coast" },
+      { secret: "Aquarium", hint: "Fish" },
+      { secret: "Glacier", hint: "Ice" },
+      { secret: "Cave", hint: "Underground" },
+      { secret: "Stadium", hint: "Arena" },
+      { secret: "Hollywood", hint: "Movies" },
+      { secret: "Stonehenge", hint: "Monoliths" },
+      { secret: "National Park", hint: "Wilderness" },
+      { secret: "Venice Canals", hint: "Gondola" },
+      { secret: "North Pole", hint: "Arctic" },
+      { secret: "Eiffel Tower", hint: "Paris" },
+      { secret: "Great Wall of China", hint: "Fortress" },
+      { secret: "Taj Mahal", hint: "Marble" },
+      { secret: "Colosseum", hint: "Rome" },
+      { secret: "Machu Picchu", hint: "Inca" },
+      { secret: "Statue of Liberty", hint: "New-York" },
+      { secret: "Big Ben", hint: "London" },
+      { secret: "Niagara Falls", hint: "Waterfall" },
+      { secret: "Mount Everest", hint: "Peak" },
+      { secret: "Bermuda Triangle", hint: "Mystery" },
+      { secret: "Sahara Desert", hint: "Dunes" },
+      { secret: "Amazon River", hint: "South-America" },
+      { secret: "Galapagos Islands", hint: "Tortoises" },
+      { secret: "Yellowstone", hint: "Geysers" },
+      { secret: "Yosemite", hint: "Granite" },
+      { secret: "Times Square", hint: "Billboards" },
+      { secret: "Golden Gate Bridge", hint: "San-Francisco" },
+      { secret: "Mount Fuji", hint: "Japan" },
+      { secret: "Sydney Opera House", hint: "Sails" },
+      { secret: "Christ the Redeemer", hint: "Brazil" },
+      { secret: "Easter Island", hint: "Statues" },
+      { secret: "Loch Ness", hint: "Monster" },
+      { secret: "Dead Sea", hint: "Salt" },
+      { secret: "Antarctica", hint: "Penguins" },
+      { secret: "Madagascar", hint: "Lemurs" },
+      { secret: "Monaco", hint: "Casinos" },
+      { secret: "Las Vegas Strip", hint: "Neon" },
+      { secret: "Disneyland", hint: "Theme-park" },
+      { secret: "Universal Studios", hint: "Attractions" },
+      { secret: "Louvre Museum", hint: "Art" },
+      { secret: "Vatican City", hint: "Chapel" },
+      { secret: "Acropolis", hint: "Athens" },
+      { secret: "Santorini", hint: "White-houses" },
+      { secret: "Dubrovnik", hint: "Walls" },
+      { secret: "Prague Castle", hint: "Bohemia" },
+      { secret: "Neuschwanstein Castle", hint: "Bavaria" },
+      { secret: "Alps Mountains", hint: "Peaks" },
+      { secret: "Kilimanjaro", hint: "Tanzania" },
+      { secret: "Serengeti", hint: "Safari" },
+      { secret: "Victoria Falls", hint: "Mist" },
+      { secret: "Great Barrier Reef", hint: "Australia" },
+      { secret: "Outback", hint: "Kangarooland" },
+      { secret: "Fuji Five Lakes", hint: "Volcano" },
+      { secret: "Kyoto Gardens", hint: "Shrines" },
+      { secret: "Petra", hint: "Carved-stone" },
+      { secret: "Burj Khalifa", hint: "Skyscraper" },
+      { secret: "Maldives", hint: "Atolls" },
+      { secret: "Bora Bora", hint: "Bungalows" },
+      { secret: "Fjords", hint: "Norway" },
+      { secret: "Northern Lights", hint: "Aurora" },
+      { secret: "Iceland Geysers", hint: "Thermal" },
+      { secret: "Mount Rushmore", hint: "Presidents" },
+      { secret: "Kennedy Space Center", hint: "Rockets" },
+      { secret: "Alcatraz", hint: "Island-prison" },
+      { secret: "Grand Bazaar", hint: "Market" },
+      { secret: "Forbidden City", hint: "Beijing" },
+      { secret: "Terracotta Army", hint: "Emperor" },
+      { secret: "Gobi Desert", hint: "Asia" },
+      { secret: "Everglades", hint: "Swamp" },
+      { secret: "Redwood Forest", hint: "Trees" },
+      { secret: "Death Valley", hint: "Heat" },
+      { secret: "Pike Place Market", hint: "Fish-market" },
+      { secret: "French Riviera", hint: "Coastline" },
+      { secret: "Ibiza", hint: "Nightlife" },
+      { secret: "Swiss Alps", hint: "Chalets" },
+      { secret: "Black Forest", hint: "Germany" },
+      { secret: "Transylvania", hint: "Dracula" },
+      { secret: "Kremlin", hint: "Moscow" },
+      { secret: "Panama Canal", hint: "Locks" },
+      { secret: "Galapagos Reef", hint: "Diving" },
+      { secret: "Patagonia", hint: "Glaciers" },
+      { secret: "Atacama Desert", hint: "Stargazing" },
+      { secret: "Cenotes", hint: "Sinkholes" },
+      { secret: "Mount Rainier", hint: "Washington" },
+      { secret: "Space Needle", hint: "Seattle" },
+      { secret: "Treehouse", hint: "Branches" },
+      { secret: "Fort", hint: "Blankets" },
+      { secret: "Bunker", hint: "Underground" },
+      { secret: "Tree Canopy", hint: "Jungle" },
+      { secret: "Submarine", hint: "Ocean" },
+      { secret: "Aircraft Carrier", hint: "Navy" },
+      { secret: "Battleship", hint: "Guns" },
+      { secret: "Cruise Ship", hint: "Vacation" },
+      { secret: "Yacht", hint: "Luxury" },
+      { secret: "Sailboat", hint: "Wind" },
+      { secret: "Canoe", hint: "River" },
+      { secret: "Kayak", hint: "Rapids" },
+      { secret: "Raft", hint: "Float" },
+      { secret: "Hot Air Balloon", hint: "Basket" },
+      { secret: "Blimp", hint: "Goodyear" },
+      { secret: "Zeppelin", hint: "Airship" },
+      { secret: "Helicopter", hint: "Chopper" },
+      { secret: "Airplane", hint: "Flight" },
+      { secret: "Jet", hint: "Fast" },
+      { secret: "Rocket", hint: "Blast-off" },
+      { secret: "Space Shuttle", hint: "NASA" },
+      { secret: "Satellite", hint: "Orbit" },
+      { secret: "Moon Base", hint: "Lunar" },
+      { secret: "Mars Colony", hint: "Red-Planet" },
+      { secret: "Shelter", hint: "Safe" },
+      { secret: "Cellar", hint: "Basement" },
+      { secret: "Attic", hint: "Roof" },
+      { secret: "Garage", hint: "Cars" },
+      { secret: "Shed", hint: "Tools" },
+      { secret: "Barn", hint: "Farm" },
+      { secret: "Silo", hint: "Grain" },
+      { secret: "Windmill", hint: "Blades" },
+      { secret: "Watermill", hint: "Wheel" },
+      { secret: "Watchtower", hint: "Guard" },
+      { secret: "Clocktower", hint: "Time" },
+      { secret: "Belltower", hint: "Ring" },
+      { secret: "Minaret", hint: "Tower" },
+      { secret: "Pagoda", hint: "Asian" },
+      { secret: "Temple", hint: "Worship" },
+      { secret: "Shrine", hint: "Sacred" },
+      { secret: "Mosque", hint: "Islam" },
+      { secret: "Church", hint: "Steeple" },
+      { secret: "Cathedral", hint: "Gothic" },
+      { secret: "Chapel", hint: "Small" },
+      { secret: "Synagogue", hint: "Jewish" },
+      { secret: "Monastery", hint: "Monks" },
+      { secret: "Convent", hint: "Nuns" }
+    ]
+  },
+  {
+    id: "games_toys",
+    name: "Games & Toys 🎮",
+    icon: "🎮",
+    words: [
+      { secret: "Minecraft", hint: "Building" },
+      { secret: "Super Mario", hint: "Plumber" },
+      { secret: "Pokémon", hint: "Monsters" },
+      { secret: "Roblox", hint: "Gaming" },
+      { secret: "Mario Kart", hint: "Racing" },
+      { secret: "Zelda Quest", hint: "Adventure" },
+      { secret: "LEGO Bricks", hint: "Building" },
+      { secret: "Superhero", hint: "Powers" },
+      { secret: "Comic Book", hint: "Illustrations" },
+      { secret: "Board Game", hint: "Tabletop" },
+      { secret: "Virtual Reality", hint: "Headset" },
+      { secret: "Arcade Machine", hint: "Coins" },
+      { secret: "Fortnite", hint: "Battle" },
+      { secret: "Tetris", hint: "Blocks" },
+      { secret: "Pac-Man", hint: "Ghost" },
+      { secret: "Rubik's Cube", hint: "Puzzle" },
+      { secret: "Yo-Yo", hint: "String" },
+      { secret: "Drone", hint: "Flight" },
+      { secret: "Nintendo Switch", hint: "Console" },
+      { secret: "Dungeons & Dragons", hint: "Dice" },
+      { secret: "Sonic the Hedgehog", hint: "Speed" },
+      { secret: "Chess", hint: "Strategy" },
+      { secret: "Tamagotchi", hint: "Virtual" },
+      { secret: "Hoverboard", hint: "Wheels" },
+      { secret: "Hot Wheels", hint: "Tracks" },
+      { secret: "Barbie", hint: "Doll" },
+      { secret: "G.I. Joe", hint: "Action-figure" },
+      { secret: "Transformers", hint: "Robots" },
+      { secret: "Play-Doh", hint: "Clay" },
+      { secret: "Slinky", hint: "Spring" },
+      { secret: "Nerf Blaster", hint: "Foam" },
+      { secret: "Super Soaker", hint: "Water" },
+      { secret: "Etch A Sketch", hint: "Drawing" },
+      { secret: "Hula Hoop", hint: "Spinning" },
+      { secret: "Frisbee", hint: "Flying" },
+      { secret: "Teddy Bear", hint: "Stuffed" },
+      { secret: "Raggedy Ann", hint: "Cloth" },
+      { secret: "Cabbage Patch Kids", hint: "Dolls" },
+      { secret: "American Girl", hint: "Historical" },
+      { secret: "Beanie Babies", hint: "Pellets" },
+      { secret: "Polly Pocket", hint: "Compact" },
+      { secret: "Bratz", hint: "Fashion" },
+      { secret: "Funko Pop", hint: "Collectible" },
+      { secret: "Magic 8-Ball", hint: "Fortune" },
+      { secret: "Silly Putty", hint: "Bouncy" },
+      { secret: "Slime", hint: "Gooey" },
+      { secret: "Fingerboard", hint: "Miniature" },
+      { secret: "Remote Control Car", hint: "Radio" },
+      { secret: "Model Airplane", hint: "Assembly" },
+      { secret: "Jigsaw Puzzle", hint: "Pieces" },
+      { secret: "Monopoly", hint: "Real-estate" },
+      { secret: "Scrabble", hint: "Words" },
+      { secret: "Clue", hint: "Mystery" },
+      { secret: "Risk", hint: "Conquest" },
+      { secret: "Catan", hint: "Settlers" },
+      { secret: "Ticket to Ride", hint: "Trains" },
+      { secret: "Pandemic", hint: "Cooperative" },
+      { secret: "Battleship", hint: "Grid" },
+      { secret: "Connect Four", hint: "Grid" },
+      { secret: "Jenga", hint: "Tower" },
+      { secret: "Operation", hint: "Buzzer" },
+      { secret: "Hungry Hungry Hippos", hint: "Marbles" },
+      { secret: "Candy Land", hint: "Board" },
+      { secret: "Chutes and Ladders", hint: "Climbing" },
+      { secret: "Guess Who?", hint: "Faces" },
+      { secret: "Sorry!", hint: "Pawns" },
+      { secret: "Trouble", hint: "Pop-o-matic" },
+      { secret: "Uno", hint: "Cards" },
+      { secret: "Phase 10", hint: "Rummy" },
+      { secret: "Exploding Kittens", hint: "Card-game" },
+      { secret: "Codenames", hint: "Spies" },
+      { secret: "Dominos", hint: "Tiles" },
+      { secret: "Mahjong", hint: "Tiles" },
+      { secret: "Checkers", hint: "Crown" },
+      { secret: "Backgammon", hint: "Doubling" },
+      { secret: "Go", hint: "Stones" },
+      { secret: "Poker", hint: "Chips" },
+      { secret: "Blackjack", hint: "Twenty-one" },
+      { secret: "Solitaire", hint: "Patience" },
+      { secret: "PlayStation", hint: "Sony" },
+      { secret: "Xbox", hint: "Microsoft" },
+      { secret: "Game Boy", hint: "Handheld" },
+      { secret: "Atari", hint: "Joystick" },
+      { secret: "Sega Genesis", hint: "Cartridge" },
+      { secret: "Donkey Kong", hint: "Barrels" },
+      { secret: "Street Fighter", hint: "Arcade" },
+      { secret: "Mortal Kombat", hint: "Fatality" },
+      { secret: "Call of Duty", hint: "Shooter" },
+      { secret: "Halo", hint: "Spartan" },
+      { secret: "Grand Theft Auto", hint: "Driving" },
+      { secret: "The Sims", hint: "Simulation" },
+      { secret: "Animal Crossing", hint: "Island" },
+      { secret: "Super Smash Bros", hint: "Fight" },
+      { secret: "Final Fantasy", hint: "RPG" },
+      { secret: "Overwatch", hint: "Battle" },
+      { secret: "Rocket League", hint: "Soccer-cars" },
+      { secret: "Fall Guys", hint: "Obstacles" },
+      { secret: "Among Us", hint: "Impostor" },
+      { secret: "Guitar Hero", hint: "Rhythm" },
+      { secret: "Kites", hint: "Wind" },
+      { secret: "Marbles", hint: "Glass" },
+      { secret: "Jacks", hint: "Bounce" },
+      { secret: "Pogo Stick", hint: "Jump" },
+      { secret: "Stilts", hint: "Tall" },
+      { secret: "Unicycle", hint: "One-wheel" },
+      { secret: "Tricycle", hint: "Toddler" },
+      { secret: "Bicycle", hint: "Pedal" },
+      { secret: "Scooter", hint: "Kick" },
+      { secret: "Rollerblades", hint: "Inline" },
+      { secret: "Toboggan", hint: "Snow" },
+      { secret: "Skis", hint: "Poles" },
+      { secret: "Surfboard", hint: "Ocean" },
+      { secret: "Boogie Board", hint: "Waves" },
+      { secret: "Skimboard", hint: "Beach" },
+      { secret: "Water Skis", hint: "Lake" },
+      { secret: "Jet Ski", hint: "Watercraft" },
+      { secret: "Snowmobile", hint: "Winter" },
+      { secret: "ATV", hint: "Four-wheeler" },
+      { secret: "Dirt Bike", hint: "Motocross" },
+      { secret: "Go-Kart", hint: "Track" },
+      { secret: "Dune Buggy", hint: "Sand" },
+      { secret: "Hovercraft", hint: "Air-cushion" },
+      { secret: "RC Car", hint: "Remote" },
+      { secret: "RC Plane", hint: "Fly" },
+      { secret: "RC Helicopter", hint: "Chopper" },
+      { secret: "RC Boat", hint: "Pond" },
+      { secret: "Train Set", hint: "Tracks" },
+      { secret: "Slot Cars", hint: "Racing" },
+      { secret: "Matchbox", hint: "Cars" },
+      { secret: "Duplo", hint: "Blocks" },
+      { secret: "Mega Bloks", hint: "Building" },
+      { secret: "K'Nex", hint: "Building" },
+      { secret: "Erector Set", hint: "Building" },
+      { secret: "Lincoln Logs", hint: "Building" },
+      { secret: "Tinker Toys", hint: "Sticks" },
+      { secret: "Bionicle", hint: "Building" },
+      { secret: "Spirograph", hint: "Circles" },
+      { secret: "Lite-Brite", hint: "Pegs" },
+      { secret: "Easy-Bake Oven", hint: "Mini-cake" },
+      { secret: "Slip 'N Slide", hint: "Water" },
+      { secret: "Water Balloon", hint: "Splash" },
+      { secret: "Silly String", hint: "Spray" },
+      { secret: "Bouncy Castle", hint: "Inflatable" },
+      { secret: "Pinata", hint: "Candy" }
+    ]
+  },
+  {
+    id: "mythical_magic",
+    name: "Mythical & Magic 🦄",
+    icon: "🦄",
+    words: [
+      { secret: "Dragon", hint: "Fire" },
+      { secret: "Unicorn", hint: "Horn" },
+      { secret: "Wizard", hint: "Sorcery" },
+      { secret: "Phoenix", hint: "Flames" },
+      { secret: "Mermaid", hint: "Ocean" },
+      { secret: "Genie", hint: "Wishes" },
+      { secret: "Robot", hint: "Machine" },
+      { secret: "Time Machine", hint: "Timeline" },
+      { secret: "Alien Visitor", hint: "Space" },
+      { secret: "Giant", hint: "Enormous" },
+      { secret: "Superhero", hint: "Caped" },
+      { secret: "Pirate Ship", hint: "Vessel" },
+      { secret: "Vampire", hint: "Fangs" },
+      { secret: "Werewolf", hint: "Fullmoon" },
+      { secret: "Pegasus", hint: "Wings" },
+      { secret: "Gargoyle", hint: "Stone" },
+      { secret: "Sphinx", hint: "Riddle" },
+      { secret: "Minotaur", hint: "Labyrinth" },
+      { secret: "Cyclops", hint: "Eye" },
+      { secret: "Centaur", hint: "Horse" },
+      { secret: "Flying Carpet", hint: "Levitation" },
+      { secret: "Spellbook", hint: "Incantation" },
+      { secret: "Magic Mirror", hint: "Reflection" },
+      { secret: "Kraken", hint: "Monster" },
+      { secret: "Elves", hint: "Magic" },
+      { secret: "Gnome", hint: "Garden" },
+      { secret: "Goblin", hint: "Mischief" },
+      { secret: "Troll", hint: "Bridge" },
+      { secret: "Ogre", hint: "Swamp" },
+      { secret: "Fairy", hint: "Pixie" },
+      { secret: "Nymph", hint: "Nature" },
+      { secret: "Siren", hint: "Singing" },
+      { secret: "Hydra", hint: "Heads" },
+      { secret: "Cerberus", hint: "Guard" },
+      { secret: "Chimera", hint: "Hybrid" },
+      { secret: "Griffin", hint: "Eagle-lion" },
+      { secret: "Hippogriff", hint: "Horse-eagle" },
+      { secret: "Basilisk", hint: "Gaze" },
+      { secret: "Leviathan", hint: "Sea-monster" },
+      { secret: "Behemoth", hint: "Colossal" },
+      { secret: "Wendigo", hint: "Forest" },
+      { secret: "Sasquatch", hint: "Footprint" },
+      { secret: "Yeti", hint: "Snowman" },
+      { secret: "Chupacabra", hint: "Goats" },
+      { secret: "Banshee", hint: "Wail" },
+      { secret: "Leprechaun", hint: "Gold" },
+      { secret: "Valkyrie", hint: "Shieldmaiden" },
+      { secret: "Banshee", hint: "Scream" },
+      { secret: "Ghost", hint: "Apparition" },
+      { secret: "Poltergeist", hint: "Haunting" },
+      { secret: "Specter", hint: "Phantom" },
+      { secret: "Mummy", hint: "Tomb" },
+      { secret: "Zombie", hint: "Undead" },
+      { secret: "Necromancer", hint: "Sorcerer" },
+      { secret: "Sorceress", hint: "Enchantress" },
+      { secret: "Warlock", hint: "Spells" },
+      { secret: "Alchemist", hint: "Transmutation" },
+      { secret: "Druid", hint: "Nature" },
+      { secret: "Shaman", hint: "Spirits" },
+      { secret: "Crystal Ball", hint: "Divination" },
+      { secret: "Cauldron", hint: "Brewing" },
+      { secret: "Magic Wand", hint: "Casting" },
+      { secret: "Potion", hint: "Elixir" },
+      { secret: "Amulet", hint: "Protection" },
+      { secret: "Talisman", hint: "Charm" },
+      { secret: "Enchanted Ring", hint: "Jewelry" },
+      { secret: "Invisibility Cloak", hint: "Stealth" },
+      { secret: "Broomstick", hint: "Flight" },
+      { secret: "Philosopher's Stone", hint: "Immortality" },
+      { secret: "Excalibur", hint: "Sword" },
+      { secret: "Holy Grail", hint: "Chalice" },
+      { secret: "Pandora's Box", hint: "Curse" },
+      { secret: "Atlantis", hint: "Sunken" },
+      { secret: "El Dorado", hint: "Gold" },
+      { secret: "Shangri-La", hint: "Utopia" },
+      { secret: "Valhalla", hint: "Hall" },
+      { secret: "Mount Olympus", hint: "Gods" },
+      { secret: "Underworld", hint: "Hades" },
+      { secret: "Tree of Life", hint: "Yggdrasil" },
+      { secret: "Fountain of Youth", hint: "Rejuvenation" },
+      { secret: "Rune", hint: "Symbol" },
+      { secret: "Spell", hint: "Incantation" },
+      { secret: "Hex", hint: "Curse" },
+      { secret: "Enchantment", hint: "Glamour" },
+      { secret: "Teleportation", hint: "Portal" },
+      { secret: "Telekinesis", hint: "Mind-power" },
+      { secret: "Pyrokinesis", hint: "Fire-control" },
+      { secret: "Shape-shifter", hint: "Transformation" },
+      { secret: "Golem", hint: "Clay" },
+      { secret: "Homunculus", hint: "Created" },
+      { secret: "Jackalope", hint: "Antlers" },
+      { secret: "Mothman", hint: "Cryptid" },
+      { secret: "Jersey Devil", hint: "Folklore" },
+      { secret: "Skinwalker", hint: "Legend" },
+      { secret: "Thunderbird", hint: "Storm" },
+      { secret: "Firebird", hint: "Slavic" },
+      { secret: "Kitsune", hint: "Fox-spirit" },
+      { secret: "Tengu", hint: "Demon" },
+      { secret: "Dragonfly Fairy", hint: "Wings" },
+      { secret: "Will-o'-the-wisp", hint: "Light" },
+      { secret: "Medusa", hint: "Snakes" },
+      { secret: "Hercules", hint: "Strong" },
+      { secret: "Hades", hint: "Underworld" },
+      { secret: "Zeus", hint: "Lightning" },
+      { secret: "Poseidon", hint: "Trident" },
+      { secret: "Athena", hint: "Wisdom" },
+      { secret: "Ares", hint: "War" },
+      { secret: "Apollo", hint: "Sun" },
+      { secret: "Artemis", hint: "Hunt" },
+      { secret: "Hermes", hint: "Messenger" },
+      { secret: "Aphrodite", hint: "Love" },
+      { secret: "Hephaestus", hint: "Forge" },
+      { secret: "Hestia", hint: "Hearth" },
+      { secret: "Demeter", hint: "Harvest" },
+      { secret: "Dionysus", hint: "Wine" },
+      { secret: "Cupid", hint: "Arrows" },
+      { secret: "Flying Saucer", hint: "UFO" },
+      { secret: "Extraterrestrial", hint: "Alien" },
+      { secret: "Martian", hint: "Mars" },
+      { secret: "Mutant", hint: "X-Men" },
+      { secret: "Cyborg", hint: "Half-machine" },
+      { secret: "Android", hint: "Robot" },
+      { secret: "Frankenstein", hint: "Monster" },
+      { secret: "Dracula", hint: "Vampire" },
+      { secret: "Wolfman", hint: "Howl" },
+      { secret: "Invisible Man", hint: "Unseen" },
+      { secret: "Phantom", hint: "Opera" },
+      { secret: "Hunchback", hint: "Bellringer" },
+      { secret: "Headless Horseman", hint: "Pumpkin" },
+      { secret: "Rumpelstiltskin", hint: "Gold" },
+      { secret: "Sleeping Beauty", hint: "Spindle" },
+      { secret: "Little Red Riding Hood", hint: "Wolf" },
+      { secret: "Big Bad Wolf", hint: "Huff" },
+      { secret: "Three Little Pigs", hint: "Houses" },
+      { secret: "Goldilocks", hint: "Porridge" },
+      { secret: "Loch Ness Monster", hint: "Nessie" },
+      { secret: "Balrog", hint: "Shadow" },
+      { secret: "Orc", hint: "Mordor" },
+      { secret: "Hobbit", hint: "Shire" },
+      { secret: "Alice in Wonderland", hint: "Rabbit-hole" },
+      { secret: "Mad Hatter", hint: "Tea-party" },
+      { secret: "Cheshire Cat", hint: "Smile" },
+      { secret: "Queen of Hearts", hint: "Cards" },
+      { secret: "Wicked Witch", hint: "West" },
+      { secret: "Wizard of Oz", hint: "Emerald" },
+      { secret: "Tooth Fairy", hint: "Under-pillow" },
+      { secret: "Sandman", hint: "Sleep" }
+    ]
+  },
+  {
+  "id": "superheroes",
+  "name": "Superheroes & Characters",
+  "icon": "🦸‍♂️",
+  "words": [
+    { "secret": "Spider-Man", "hint": "Balance" },
+    { "secret": "Batman", "hint": "Nocturnal" },
+    { "secret": "Superman", "hint": "Outsider" },
+    { "secret": "Iron Man", "hint": "Engine" },
+    { "secret": "Wonder Woman", "hint": "Diplomat" },
+    { "secret": "Captain America", "hint": "Anachronism" },
+    { "secret": "Thor", "hint": "Mythology" },
+    { "secret": "Black Panther", "hint": "Isolation" },
+    { "secret": "Hulk", "hint": "Burden" },
+    { "secret": "Flash", "hint": "Momentum" },
+    { "secret": "Aquaman", "hint": "Abyss" },
+    { "secret": "Wolverine", "hint": "Regret" },
+    { "secret": "Doctor Strange", "hint": "Ego" },
+    { "secret": "Ant-Man", "hint": "Scale" },
+    { "secret": "Star-Lord", "hint": "Mixed" },
+    { "secret": "Thanos", "hint": "Equation" },
+    { "secret": "Joker", "hint": "Absurdity" },
+    { "secret": "Groot", "hint": "Perennial" },
+    { "secret": "Venom", "hint": "Host" },
+    { "secret": "Deadpool", "hint": "Awareness" },
+    { "secret": "Hawkeye", "hint": "Sight" },
+    { "secret": "Scarlet Witch", "hint": "Unstable" },
+    { "secret": "Supergirl", "hint": "Legacy" },
+    { "secret": "Green Lantern", "hint": "Spectrum" },
+    { "secret": "Shazam", "hint": "Potential" },
+    { "secret": "Batgirl", "hint": "Data" },
+    { "secret": "Robin", "hint": "Shadow" },
+    { "secret": "Nightwing", "hint": "Departure" },
+    { "secret": "Catwoman", "hint": "Ambivalence" },
+    { "secret": "Harley Quinn", "hint": "Devotion" },
+    { "secret": "Penguin", "hint": "Aristocrat" },
+    { "secret": "Riddler", "hint": "Intellectual" },
+    { "secret": "Two-Face", "hint": "Chance" },
+    { "secret": "Poison Ivy", "hint": "Bloom" },
+    { "secret": "Bane", "hint": "Pinnacle" },
+    { "secret": "Mr. Freeze", "hint": "Preservation" },
+    { "secret": "Green Goblin", "hint": "Succession" },
+    { "secret": "Doctor Octopus", "hint": "Superior" },
+    { "secret": "Carnage", "hint": "Anarchy" },
+    { "secret": "Daredevil", "hint": "Senses" },
+    { "secret": "Punisher", "hint": "Finality" },
+    { "secret": "Luke Cage", "hint": "Integrity" },
+    { "secret": "Iron Fist", "hint": "Discipline" },
+    { "secret": "Jessica Jones", "hint": "Trauma" },
+    { "secret": "Moon Knight", "hint": "Phases" },
+    { "secret": "Ghost Rider", "hint": "Contract" },
+    { "secret": "Blade", "hint": "Twilight" },
+    { "secret": "Magneto", "hint": "Polarization" },
+    { "secret": "Professor X", "hint": "Cerebral" },
+    { "secret": "Cyclops", "hint": "Focus" },
+    { "secret": "Storm", "hint": "Element" },
+    { "secret": "Rogue", "hint": "Contact" },
+    { "secret": "Gambit", "hint": "Stakes" },
+    { "secret": "Beast", "hint": "Savage" },
+    { "secret": "Jean Grey", "hint": "Cycles" },
+    { "secret": "Nightcrawler", "hint": "Faith" },
+    { "secret": "Iceman", "hint": "Absolute" },
+    { "secret": "Colossus", "hint": "Fortress" },
+    { "secret": "Mystique", "hint": "Mimic" },
+    { "secret": "Falcon", "hint": "Ascent" },
+    { "secret": "Winter Soldier", "hint": "Amnesia" },
+    { "secret": "War Machine", "hint": "Payload" },
+    { "secret": "Vision", "hint": "Logic" },
+    { "secret": "Black Widow", "hint": "Debt" },
+    { "secret": "Captain Marvel", "hint": "Radiance" },
+    { "secret": "Ms. Marvel", "hint": "Growth" },
+    { "secret": "Shang-Chi", "hint": "Lineage" },
+    { "secret": "She-Hulk", "hint": "Verdict" },
+    { "secret": "Miles Morales", "hint": "Expectation" },
+    { "secret": "Gwen Stacy", "hint": "Alternate" },
+    { "secret": "Silver Surfer", "hint": "Void" },
+    { "secret": "Galactus", "hint": "Necessity" },
+    { "secret": "Doctor Doom", "hint": "Perfection" },
+    { "secret": "Human Torch", "hint": "Combustion" },
+    { "secret": "Thing", "hint": "Exterior" },
+    { "secret": "Invisible Woman", "hint": "Presence" },
+    { "secret": "Mister Fantastic", "hint": "Reach" },
+    { "secret": "Cyborg", "hint": "Interface" },
+    { "secret": "Starfire", "hint": "Foreign" },
+    { "secret": "Raven", "hint": "Suppression" },
+    { "secret": "Beast Boy", "hint": "Adaptation" },
+    { "secret": "Static Shock", "hint": "Current" },
+    { "secret": "Martian Manhunter", "hint": "Sole" },
+    { "secret": "Hawkman", "hint": "Eternal" },
+    { "secret": "Hawkgirl", "hint": "Ancient" },
+    { "secret": "Atom", "hint": "Small" },
+    { "secret": "Black Canary", "hint": "Frequency" },
+    { "secret": "Green Arrow", "hint": "Survival" },
+    { "secret": "Darkseid", "hint": "Omega" },
+    { "secret": "Brainiac", "hint": "Curation" },
+    { "secret": "Lex Luthor", "hint": "Envy" },
+    { "secret": "General Zod", "hint": "Exiled" },
+    { "secret": "Doomsday", "hint": "Inevitable" },
+    { "secret": "Bizarro", "hint": "Flawed" },
+    { "secret": "Sinestro", "hint": "Terror" },
+    { "secret": "Black Adam", "hint": "Justice" },
+    { "secret": "Blue Beetle", "hint": "Artifact" },
+    { "secret": "Booster Gold", "hint": "Glory" },
+    { "secret": "Firestorm", "hint": "Fusion" },
+    { "secret": "Plastic Man", "hint": "Form" },
+    { "secret": "Elongated Man", "hint": "Sleuth" },
+    { "secret": "Red Tornado", "hint": "Artificial" },
+    { "secret": "Captain Atom", "hint": "Fallout" },
+    { "secret": "The Question", "hint": "Identity" },
+    { "secret": "Huntress", "hint": "Vendetta" },
+    { "secret": "Power Girl", "hint": "Displaced" },
+    { "secret": "Superboy", "hint": "Origin" },
+    { "secret": "Kid Flash", "hint": "Successor" },
+    { "secret": "Wonder Girl", "hint": "Protege" },
+    { "secret": "Speedy", "hint": "Dependence" },
+    { "secret": "Arsenal", "hint": "Modification" },
+    { "secret": "Red Arrow", "hint": "Distance" },
+    { "secret": "Aqualad", "hint": "Tide" },
+    { "secret": "Miss Martian", "hint": "Invasion" },
+    { "secret": "Artemis", "hint": "Bloodline" },
+    { "secret": "Zatanna", "hint": "Performance" },
+    { "secret": "Constantine", "hint": "Damnation" },
+    { "secret": "Swamp Thing", "hint": "Essence" },
+    { "secret": "Deadman", "hint": "Ethereal" },
+    { "secret": "Etrigan", "hint": "Verse" },
+    { "secret": "Phantom Stranger", "hint": "Observation" },
+    { "secret": "Spectre", "hint": "Wrath" },
+    { "secret": "Doctor Fate", "hint": "Inevitability" },
+    { "secret": "Krypto", "hint": "Loyalty" },
+    { "secret": "Streaky", "hint": "Accident" },
+    { "secret": "Ace the Bat-Hound", "hint": "Utility" },
+    { "secret": "Dex-Starr", "hint": "Rage" },
+    { "secret": "Gleek", "hint": "Mischief" },
+    { "secret": "Wonder Twins", "hint": "Bond" },
+    { "secret": "Rocket Raccoon", "hint": "Experiment" },
+    { "secret": "Drax", "hint": "Literal" },
+    { "secret": "Gamora", "hint": "Weapon" },
+    { "secret": "Nebula", "hint": "Cybernetic" },
+    { "secret": "Mantis", "hint": "Reception" },
+    { "secret": "Yondu", "hint": "Direction" },
+    { "secret": "Valkyrie", "hint": "Escort" },
+    { "secret": "Heimdall", "hint": "Vigil" },
+    { "secret": "Korg", "hint": "Foundations" },
+    { "secret": "Miek", "hint": "Silent" },
+    { "secret": "Okoye", "hint": "Vow" },
+    { "secret": "Shuri", "hint": "Advancement" },
+    { "secret": "Nakia", "hint": "Undercover" },
+    { "secret": "M'Baku", "hint": "Traditional" },
+    { "secret": "Wong", "hint": "Duty" },
+    { "secret": "Ancient One", "hint": "Infinite" }
+   { secret: "Avatar The Last Airbender", hint: "Fourfold" },
+  { secret: "Mickey Mouse", hint: "Gloves" },
+  { secret: "Elsa", hint: "Isolation" },
+  { secret: "Shrek", hint: "Layers" },
+  { secret: "Scooby-Doo", hint: "Snack" },
+  { secret: "Woody", hint: "Pull-string" },
+  { secret: "Buzz Lightyear", hint: "Infinity" },
+  { secret: "Pikachu", hint: "Cheeks" },
+  { secret: "Minions", hint: "Overalls" },
+  { secret: "Moana", hint: "Horizon" },
+  { secret: "Simba", hint: "Legacy" },
+  { secret: "Garfield", hint: "Mondays" },
+  { secret: "Patrick Star", hint: "Underneath" },
+  { secret: "Bugs Bunny", hint: "Doc" },
+  { secret: "Lightning McQueen", hint: "95" },
+  { secret: "WALL-E", hint: "Plant" },
+  { secret: "Stitch", hint: "Family" },
+  { secret: "Po the Panda", hint: "Destiny" },
+  { secret: "Gru", hint: "Moon" },
+  { secret: "Sonic", hint: "Rings" },
+  { secret: "Mario", hint: "Mustache" },
+  { secret: "Toothless", hint: "Night" },
+  { secret: "Dora", hint: "Backpack" },
+  { secret: "Tom & Jerry", hint: "Rivalry" },
+  { secret: "Winnie the Pooh", hint: "Stuck" },
+  { secret: "Donald Duck", hint: "Temper" },
+  { secret: "Goofy", hint: "Hyuck" },
+  { secret: "Pluto", hint: "Silent" },
+  { secret: "Cinderella", hint: "Midnight" },
+  { secret: "Snow White", hint: "Apple" },
+  { secret: "Ariel", hint: "Collection" },
+  { secret: "Belle", hint: "Library" },
+  { secret: "Jasmine", hint: "Wish" },
+  { secret: "Mulan", hint: "Reflection" },
+  { secret: "Rapunzel", hint: "Tower" },
+  { secret: "Tiana", hint: "Dream" },
+  { secret: "Mirabel", hint: "Giftless" },
+  { secret: "Baymax", hint: "Healthcare" },
+  { secret: "Nemo", hint: "Touch" },
+  { secret: "Dory", hint: "Swimming" },
+  { secret: "Mater", hint: "Backward" },
+  { secret: "Remy", hint: "Hat" },
+  { secret: "Sulley", hint: "Door" },
+  { secret: "Mike Wazowski", hint: "Paperwork" },
+  { secret: "Incredibles", hint: "Suits" },
+  { secret: "Dash", hint: "Blur" },
+  { secret: "Jack-Jack", hint: "Cookies" },
+  { secret: "Joy", hint: "Core" },
+  { secret: "Sadness", hint: "Rain" },
+  { secret: "Judy Hopps", hint: "Badge" },
+  { secret: "Nick Wilde", hint: "Sly" },
+  { secret: "Olaf", hint: "Summer" },
+  { secret: "Kristoff", hint: "Ice" },
+  { secret: "Maui", hint: "You're Welcome" },
+  { secret: "Peter Pan", hint: "Shadow" },
+  { secret: "Tinker Bell", hint: "Dust" },
+  { secret: "Captain Hook", hint: "Clock" },
+  { secret: "Pinocchio", hint: "Strings" },
+  { secret: "Bambi", hint: "Forest" },
+  { secret: "Dumbo", hint: "Feather" },
+  { secret: "Tarzan", hint: "Jungle" },
+  { secret: "Hercules", hint: "Zero" },
+  { secret: "Megamind", hint: "Presentation" },
+  { secret: "Despicable Me", hint: "Ray gun" },
+  { secret: "The Lorax", hint: "Speak" },
+  { secret: "Grinch", hint: "Small heart" },
+  { secret: "Cat in the Hat", hint: "Rainy day" },
+  { secret: "Paddington Bear", hint: "London" },
+  { secret: "Stuart Little", hint: "Adopted" },
+  { secret: "Shrek's Donkey", hint: "Noble steed" },
+  { secret: "Puss in Boots", hint: "Eyes" },
+  { secret: "Fiona", hint: "Sunset" },
+  { secret: "Kung Fu Panda", hint: "Scroll" },
+  { secret: "Madagascar Penguins", hint: "Wave" },
+  { secret: "Alex the Lion", hint: "Steak" },
+  { secret: "Marty the Zebra", hint: "Afro Circus" },
+  { secret: "Snoopy", hint: "Typewriter" },
+  { secret: "Charlie Brown", hint: "Zigzag" },
+  { secret: "The Flintstones", hint: "Feet" },
+  { secret: "The Jetsons", hint: "Flying" },
+  { secret: "Powerpuff Girls", hint: "Sugar" },
+  { secret: "Dexter's Lab", hint: "Accent" },
+  { secret: "Johnny Bravo", hint: "Mama" },
+  { secret: "Courage the Cowardly Dog", hint: "Middle of Nowhere" },
+  { secret: "Ben 10", hint: "Wrist" },
+  { secret: "Teen Titans", hint: "Go" },
+  { secret: "Phineas and Ferb", hint: "104" },
+  { secret: "Perry the Platypus", hint: "Fedora" },
+  { secret: "Kim Possible", hint: "Call me" },
+  { secret: "Gravity Falls", hint: "Bill" },
+  { secret: "Star Wars Yoda", hint: "Backward" },
+  { secret: "Darth Vader", hint: "Breathing" },
+  { secret: "Luke Skywalker", hint: "Farmboy" },
+  { secret: "Chewbacca", hint: "Walking Carpet" },
+  { secret: "R2-D2", hint: "Beeps" },
+  { secret: "Harry Potter", hint: "Lightning" },
+  { secret: "Hermione", hint: "Wingardium" },
+  { secret: "Ron Weasley", hint: "Hand-me-downs" },
+  { secret: "Arthur", hint: "Glasses" },
+  { secret: "Buster", hint: "Aliens" },
+  { secret: "Francine", hint: "Sports" },
+  { secret: "Tommy Pickles", hint: "Screwdriver" },
+  { secret: "Chuckie Finster", hint: "Scared" },
+  { secret: "Angelica Pickles", hint: "Cynthia" },
+  { secret: "Reptar", hint: "Cereal" },
+  { secret: "Doug Funnie", hint: "Vest" },
+  { secret: "Skeeter", hint: "Honk" },
+  { secret: "Patti Mayonnaise", hint: "Beets" },
+  { secret: "Ren", hint: "Asthma" },
+  { secret: "Stimpy", hint: "Happy" },
+  { secret: "Rocko", hint: "Modern" },
+  { secret: "Arnold", hint: "Closet" },
+  { secret: "Gerald", hint: "Legend" },
+  { secret: "Helga", hint: "Locket" },
+  { secret: "Eliza Thornberry", hint: "Braces" },
+  { secret: "Donnie", hint: "Leopard" },
+  { secret: "Otto Rocket", hint: "Ocean Shores" },
+  { secret: "Reggie Rocket", hint: "Magazine" },
+  { secret: "Aang", hint: "Iceberg" },
+  { secret: "Katara", hint: "Necklace" },
+  { secret: "Sokka", hint: "Meat" },
+  { secret: "Toph", hint: "Blind" },
+  { secret: "Zuko", hint: "Honor" },
+  { secret: "Iroh", hint: "Leaves" },
+  { secret: "Azula", hint: "Perfect" },
+  { secret: "Appa", hint: "Yip" },
+  { secret: "Momo", hint: "Wings" },
+  { secret: "Korra", hint: "City" },
+  { secret: "Mako", hint: "Scarf" },
+  { secret: "Bolin", hint: "Pro-bending" },
+  { secret: "Asami", hint: "Goggles" },
+  { secret: "Tenzin", hint: "Island" },
+  { secret: "Gumball", hint: "Trouble" },
+  { secret: "Darwin", hint: "Shoes" },
+  { secret: "Steven Universe", hint: "Shield" },
+  { secret: "Garnet", hint: "Love" },
+  { secret: "Amethyst", hint: "Whip" },
+  { secret: "Pearl", hint: "Order" },
+  { secret: "Finn", hint: "Hat" },
+  { secret: "Jake", hint: "Stretch" },
+  { secret: "Princess Bubblegum", hint: "Pink" },
+  { secret: "Marceline", hint: "Bass" },
+  { secret: "Ice King", hint: "Penguins" },
+  { secret: "BMO", hint: "Batteries" }
+  ]
+},
+  {
+    id: "bible_characters",
+    name: "Bible Characters 📜",
+    icon: "📜",
+    words: [
+      { secret: "Moses", hint: "Prophet" },
+      { secret: "Moses", hint: "Faithful" },
+      { secret: "Noah", hint: "Sons" },
+      { secret: "Noah", hint: "Genesis" },
+      { secret: "David", hint: "Man" },
+      { secret: "Daniel", hint: "Prophet" },
+      { secret: "Jonah", hint: "Prophet" },
+      { secret: "Adam", hint: "Man" },
+      { secret: "Eve", hint: "Woman" },
+      { secret: "Abraham", hint: "Man" },
+      { secret: "Joseph", hint: "Man" },
+      { secret: "Samson", hint: "Man" },
+      { secret: "Esther", hint: "Woman" },
+      { secret: "Solomon", hint: "Man" },
+      { secret: "Mary", hint: "Woman" },
+      { secret: "Peter", hint: "Man" },
+      { secret: "Paul", hint: "Man" },
+      { secret: "Joshua", hint: "Man" },
+      { secret: "Ruth", hint: "Woman" },
+      { secret: "Samuel", hint: "Sword" },
+      { secret: "Elijah", hint: "Fire" },
+      { secret: "Gideon", hint: "Wet" },
+      { secret: "Miriam", hint: "White" },
+      { secret: "Lazarus", hint: "Crying" },
+      { secret: "John the Baptist", hint: "Eat" },
+      { secret: "Sarah", hint: "Woman" },
+      { secret: "Job", hint: "Suffering" },
+      { secret: "Isaac", hint: "Patriarch" },
+      { secret: "Jacob", hint: "Patriarch" },
+      { secret: "Rachel", hint: "Camel" },
+      { secret: "Leah", hint: "Woman" },
+      { secret: "Aaron", hint: "Man" },
+      { secret: "Cain", hint: "Sin" },
+      { secret: "Abel", hint: "Suffering" },
+      { secret: "Seth", hint: "Seed" },
+      { secret: "Enoch", hint: "Walked" },
+      { secret: "Methuselah", hint: "Man" },
+      { secret: "Lot", hint: "Salt" },
+      { secret: "Rebekah", hint: "Well" },
+      { secret: "Esau", hint: "Hairy" },
+      { secret: "Deborah", hint: "Judge" },
+      { secret: "Delilah", hint: "Shears" },
+      { secret: "Boaz", hint: "Kinsman" },
+      { secret: "Naomi", hint: "Bitterness" },
+      { secret: "Hannah", hint: "Prayer" },
+      { secret: "Eli", hint: "Priest" },
+      { secret: "Saul", hint: "King" },
+      { secret: "Jonathan", hint: "Covenant" },
+      { secret: "Goliath", hint: "Giant" },
+      { secret: "Absalom", hint: "Hair" },
+      { secret: "Elisha", hint: "Mantle" },
+      { secret: "Isaiah", hint: "Prophecy" },
+      { secret: "Jeremiah", hint: "Weeping" },
+      { secret: "Ezekiel", hint: "Bones" },
+      { secret: "Hosea", hint: "Faithful" },
+      { secret: "Joel", hint: "Locusts" },
+      { secret: "Amos", hint: "Herdsman" },
+      { secret: "Obadiah", hint: "Visions" },
+      { secret: "Micah", hint: "Justice" },
+      { secret: "Nahum", hint: "Nineveh" },
+      { secret: "Habakkuk", hint: "Watchtower" },
+      { secret: "Zephaniah", hint: "Day" },
+      { secret: "Haggai", hint: "Temple" },
+      { secret: "Zechariah", hint: "Branch" },
+      { secret: "Malachi", hint: "Messenger" },
+      { secret: "Shadrach", hint: "Furnace" },
+      { secret: "Meshach", hint: "Fire" },
+      { secret: "Abednego", hint: "Flames" },
+      { secret: "Nebuchadnezzar", hint: "Babylon" },
+      { secret: "Belshazzar", hint: "Writing" },
+      { secret: "Darius", hint: "Decree" },
+      { secret: "Cyrus", hint: "Persia" },
+      { secret: "Mordecai", hint: "Purim" },
+      { secret: "Haman", hint: "Gallows" },
+      { secret: "Joseph of Nazareth", hint: "Carpenter" },
+      { secret: "Elizabeth", hint: "Barren" },
+      { secret: "Zechariah Priest", hint: "Mute" },
+      { secret: "Simeon", hint: "Blessing" },
+      { secret: "Anna", hint: "Prophetess" },
+      { secret: "Andrew", hint: "Fisherman" },
+      { secret: "James", hint: "Thunder" },
+      { secret: "John", hint: "Beloved" },
+      { secret: "Philip", hint: "Disciple" },
+      { secret: "Bartholomew", hint: "Nathanael" },
+      { secret: "Thomas", hint: "Doubting" },
+      { secret: "Matthew", hint: "Tax-collector" },
+      { secret: "Thaddaeus", hint: "Apostle" },
+      { secret: "Simon the Zealot", hint: "Patriot" },
+      { secret: "Judas Iscariot", hint: "Coins" },
+      { secret: "Matthias", hint: "Chosen" },
+      { secret: "Stephen", hint: "Martyr" },
+      { secret: "Barnabas", hint: "Encourager" },
+      { secret: "Timothy", hint: "Youth" },
+      { secret: "Titus", hint: "Crete" },
+      { secret: "Philemon", hint: "Slaveowner" },
+      { secret: "Onesimus", hint: "Useful" },
+      { secret: "Lydia", hint: "Purple" },
+      { secret: "Priscilla", hint: "Tentmaker" },
+      { secret: "Aquila", hint: "Fellow-worker" },
+      { secret: "Dorcas", hint: "Tabitha" },
+      { secret: "Cornelius", hint: "Centurion" },
+      { secret: "Nicodemus", hint: "Night" },
+      { secret: "Hagar", hint: "Maidservant" },
+      { secret: "Ishmael", hint: "Archer" },
+      { secret: "Laban", hint: "Uncle" },
+      { secret: "Zilpah", hint: "Leah's-maid" },
+      { secret: "Bilhah", hint: "Rachel's-maid" },
+      { secret: "Dinah", hint: "Daughter" },
+      { secret: "Tamar", hint: "Judah" },
+      { secret: "Jethro", hint: "Midian" },
+      { secret: "Zipporah", hint: "Moses'-wife" },
+      { secret: "Caleb", hint: "Spy" },
+      { secret: "Achan", hint: "Thief" },
+      { secret: "Rahab", hint: "Scarlet-cord" },
+      { secret: "Jael", hint: "Tent-peg" },
+      { secret: "Sisera", hint: "Commander" },
+      { secret: "Jephthah", hint: "Vow" },
+      { secret: "Manoah", hint: "Samson's-father" },
+      { secret: "Orpah", hint: "Sister-in-law" },
+      { secret: "Obed", hint: "Grandfather" },
+      { secret: "Jesse", hint: "David's-father" },
+      { secret: "Michal", hint: "Saul's-daughter" },
+      { secret: "Abigail", hint: "Nabal's-wife" },
+      { secret: "Bathsheba", hint: "Uriah's-wife" },
+      { secret: "Uriah", hint: "Hittite" },
+      { secret: "Nathan", hint: "Prophet" },
+      { secret: "Joab", hint: "General" },
+      { secret: "Abner", hint: "Commander" },
+      { secret: "Mephibosheth", hint: "Lame" },
+      { secret: "Zadok", hint: "Priest" },
+      { secret: "Jeroboam", hint: "Israel" },
+      { secret: "Rehoboam", hint: "Judah" },
+      { secret: "Ahab", hint: "Wicked-king" },
+      { secret: "Jezebel", hint: "Wicked-queen" },
+      { secret: "Athaliah", hint: "Queen" },
+      { secret: "Joash", hint: "Boy-king" },
+      { secret: "Hezekiah", hint: "Good-king" },
+      { secret: "Manasseh", hint: "Evil-king" },
+      { secret: "Josiah", hint: "Law" },
+      { secret: "Ezra", hint: "Scribe" },
+      { secret: "Nehemiah", hint: "Wall" },
+      { secret: "Zacchaeus", hint: "Tree" },
+      { secret: "Bartimaeus", hint: "Blind" },
+      { secret: "Mary Magdalene", hint: "Tomb" },
+      { secret: "Martha", hint: "Sister" },
+      { secret: "Pilate", hint: "Governor" },
+      { secret: "Herod", hint: "King" },
+      { secret: "Caesar", hint: "Emperor" },
+      { secret: "John the Apostle", hint: "Patmos" },
+      { secret: "Silas", hint: "Prison" },
+      { secret: "Apollos", hint: "Preacher" },
+      { secret: "Eutychus", hint: "Window" },
+      { secret: "Felix", hint: "Governor" },
+      { secret: "Festus", hint: "Governor" }
+    ]
+  },
+  {
+    id: "cartoons_movies",
+    name: "For Drawing",
+    icon: "🎬",
+    words: [
+  { secret: "Dog", hint: "Animal" },
+  { secret: "Cat", hint: "Animal" },
+  { secret: "Elephant", hint: "Animal" },
+  { secret: "Giraffe", hint: "Animal" },
+  { secret: "Lion", hint: "Animal" },
+  { secret: "Tiger", hint: "Animal" },
+  { secret: "Bear", hint: "Animal" },
+  { secret: "Monkey", hint: "Animal" },
+  { secret: "Penguin", hint: "Animal" },
+  { secret: "Dolphin", hint: "Animal" },
+  { secret: "Shark", hint: "Animal" },
+  { secret: "Whale", hint: "Animal" },
+  { secret: "Turtle", hint: "Animal" },
+  { secret: "Snake", hint: "Animal" },
+  { secret: "Frog", hint: "Animal" },
+  { secret: "Spider", hint: "Animal" },
+  { secret: "Butterfly", hint: "Animal" },
+  { secret: "Bee", hint: "Animal" },
+  { secret: "Bird", hint: "Animal" },
+  { secret: "Eagle", hint: "Animal" },
+  { secret: "Owl", hint: "Animal" },
+  { secret: "Flamingo", hint: "Animal" },
+  { secret: "Pig", hint: "Animal" },
+  { secret: "Cow", hint: "Animal" },
+  { secret: "Horse", hint: "Animal" },
+  { secret: "Sheep", hint: "Animal" },
+  { secret: "Chicken", hint: "Animal" },
+  { secret: "Duck", hint: "Animal" },
+  { secret: "Rabbit", hint: "Animal" },
+  { secret: "Mouse", hint: "Animal" },
+  { secret: "Kangaroo", hint: "Animal" },
+  { secret: "Koala", hint: "Animal" },
+  { secret: "Panda", hint: "Animal" },
+  { secret: "Rhinoceros", hint: "Animal" },
+  { secret: "Hippopotamus", hint: "Animal" },
+  { secret: "Crocodile", hint: "Animal" },
+  { secret: "Octopus", hint: "Animal" },
+  { secret: "Crab", hint: "Animal" },
+  { secret: "Snail", hint: "Animal" },
+  { secret: "Worm", hint: "Animal" },
+  { secret: "Pizza", hint: "Food" },
+  { secret: "Hamburger", hint: "Food" },
+  { secret: "Hot Dog", hint: "Food" },
+  { secret: "French Fries", hint: "Food" },
+  { secret: "Taco", hint: "Food" },
+  { secret: "Sushi", hint: "Food" },
+  { secret: "Spaghetti", hint: "Food" },
+  { secret: "Sandwich", hint: "Food" },
+  { secret: "Salad", hint: "Food" },
+  { secret: "Soup", hint: "Food" },
+  { secret: "Bread", hint: "Food" },
+  { secret: "Cheese", hint: "Food" },
+  { secret: "Egg", hint: "Food" },
+  { secret: "Apple", hint: "Food" },
+  { secret: "Banana", hint: "Food" },
+  { secret: "Orange", hint: "Food" },
+  { secret: "Grapes", hint: "Food" },
+  { secret: "Strawberry", hint: "Food" },
+  { secret: "Watermelon", hint: "Food" },
+  { secret: "Pineapple", hint: "Food" },
+  { secret: "Cherry", hint: "Food" },
+  { secret: "Lemon", hint: "Food" },
+  { secret: "Carrot", hint: "Food" },
+  { secret: "Broccoli", hint: "Food" },
+  { secret: "Corn", hint: "Food" },
+  { secret: "Tomato", hint: "Food" },
+  { secret: "Potato", hint: "Food" },
+  { secret: "Ice Cream", hint: "Food" },
+  { secret: "Cake", hint: "Food" },
+  { secret: "Cookie", hint: "Food" },
+  { secret: "Donut", hint: "Food" },
+  { secret: "Chocolate", hint: "Food" },
+  { secret: "Candy", hint: "Food" },
+  { secret: "Popcorn", hint: "Food" },
+  { secret: "Pancake", hint: "Food" },
+  { secret: "Waffle", hint: "Food" },
+  { secret: "Milk", hint: "Drink" },
+  { secret: "Juice", hint: "Drink" },
+  { secret: "Coffee", hint: "Drink" },
+  { secret: "Tea", hint: "Drink" },
+  { secret: "Chair", hint: "Furniture" },
+  { secret: "Table", hint: "Furniture" },
+  { secret: "Bed", hint: "Furniture" },
+  { secret: "Couch", hint: "Furniture" },
+  { secret: "Lamp", hint: "Household Object" },
+  { secret: "Television", hint: "Electronic" },
+  { secret: "Computer", hint: "Electronic" },
+  { secret: "Phone", hint: "Electronic" },
+  { secret: "Camera", hint: "Electronic" },
+  { secret: "Clock", hint: "Household Object" },
+  { secret: "Book", hint: "School Supply" },
+  { secret: "Pencil", hint: "School Supply" },
+  { secret: "Backpack", hint: "School Supply" },
+  { secret: "Shoes", hint: "Clothing" },
+  { secret: "Shirt", hint: "Clothing" },
+  { secret: "Pants", hint: "Clothing" },
+  { secret: "Hat", hint: "Clothing" },
+  { secret: "Socks", hint: "Clothing" },
+  { secret: "Glasses", hint: "Accessory" },
+  { secret: "Toothbrush", hint: "Bathroom Item" },
+  { secret: "Soap", hint: "Bathroom Item" },
+  { secret: "Towel", hint: "Bathroom Item" },
+  { secret: "Toilet", hint: "Bathroom Item" },
+  { secret: "Bathtub", hint: "Bathroom Item" },
+  { secret: "Mirror", hint: "Household Object" },
+  { secret: "Window", hint: "House Part" },
+  { secret: "Door", hint: "House Part" },
+  { secret: "Key", hint: "Household Object" },
+  { secret: "Lock", hint: "Household Object" },
+  { secret: "Umbrella", hint: "Accessory" },
+  { secret: "Knife", hint: "Kitchenware" },
+  { secret: "Fork", hint: "Kitchenware" },
+  { secret: "Spoon", hint: "Kitchenware" },
+  { secret: "Plate", hint: "Kitchenware" },
+  { secret: "Cup", hint: "Kitchenware" },
+  { secret: "Trash Can", hint: "Household Object" },
+  { secret: "Broom", hint: "Household Object" },
+  { secret: "Vacuum", hint: "Household Object" },
+  { secret: "Scissors", hint: "Household Object" },
+  { secret: "Toilet Paper", hint: "Bathroom Item" },
+  { secret: "School", hint: "Building" },
+  { secret: "Hospital", hint: "Building" },
+  { secret: "Park", hint: "Place" },
+  { secret: "Beach", hint: "Nature" },
+  { secret: "Forest", hint: "Nature" },
+  { secret: "Mountain", hint: "Nature" },
+  { secret: "Volcano", hint: "Nature" },
+  { secret: "Island", hint: "Nature" },
+  { secret: "Desert", hint: "Nature" },
+  { secret: "City", hint: "Place" },
+  { secret: "Farm", hint: "Place" },
+  { secret: "Zoo", hint: "Place" },
+  { secret: "Library", hint: "Building" },
+  { secret: "Museum", hint: "Building" },
+  { secret: "Cinema", hint: "Building" },
+  { secret: "Restaurant", hint: "Building" },
+  { secret: "Supermarket", hint: "Building" },
+  { secret: "Airport", hint: "Building" },
+  { secret: "Train Station", hint: "Building" },
+  { secret: "Bus Stop", hint: "Place" },
+  { secret: "House", hint: "Building" },
+  { secret: "Castle", hint: "Building" },
+  { secret: "Tent", hint: "Shelter" },
+  { secret: "Sun", hint: "Space" },
+  { secret: "Moon", hint: "Space" },
+  { secret: "Star", hint: "Space" },
+  { secret: "Cloud", hint: "Weather" },
+  { secret: "Rain", hint: "Weather" },
+  { secret: "Snow", hint: "Weather" },
+  { secret: "Tree", hint: "Nature" },
+  { secret: "Flower", hint: "Nature" },
+  { secret: "Grass", hint: "Nature" },
+  { secret: "Car", hint: "Vehicle" },
+  { secret: "Bus", hint: "Vehicle" },
+  { secret: "Train", hint: "Vehicle" },
+  { secret: "Airplane", hint: "Vehicle" },
+  { secret: "Helicopter", hint: "Vehicle" },
+  { secret: "Boat", hint: "Vehicle" },
+  { secret: "Ship", hint: "Vehicle" },
+  { secret: "Bicycle", hint: "Vehicle" },
+  { secret: "Doctor", hint: "Profession" },
+  { secret: "Nurse", hint: "Profession" },
+  { secret: "Police Officer", hint: "Profession" },
+  { secret: "Firefighter", hint: "Profession" },
+  { secret: "Teacher", hint: "Profession" },
+  { secret: "Chef", hint: "Profession" },
+  { secret: "Astronaut", hint: "Profession" },
+  { secret: "Pilot", hint: "Profession" },
+  { secret: "Farmer", hint: "Profession" },
+  { secret: "Artist", hint: "Profession" },
+  { secret: "Musician", hint: "Profession" },
+  { secret: "Singer", hint: "Profession" },
+  { secret: "Dancer", hint: "Profession" },
+  { secret: "Actor", hint: "Profession" },
+  { secret: "Scientist", hint: "Profession" },
+  { secret: "Magician", hint: "Profession" },
+  { secret: "Clown", hint: "Character" },
+  { secret: "Pirate", hint: "Character" },
+  { secret: "Ninja", hint: "Character" },
+  { secret: "Knight", hint: "Character" },
+  { secret: "Princess", hint: "Character" },
+  { secret: "King", hint: "Character" },
+  { secret: "Queen", hint: "Character" },
+  { secret: "Superhero", hint: "Character" },
+  { secret: "Vampire", hint: "Monster" },
+  { secret: "Zombie", hint: "Monster" },
+  { secret: "Ghost", hint: "Monster" },
+  { secret: "Alien", hint: "Character" },
+  { secret: "Robot", hint: "Character" },
+  { secret: "Monster", hint: "Monster" },
+  { secret: "Dragon", hint: "Mythical Creature" },
+  { secret: "Unicorn", hint: "Mythical Creature" },
+  { secret: "Mermaid", hint: "Mythical Creature" },
+  { secret: "Fairy", hint: "Mythical Creature" },
+  { secret: "Witch", hint: "Character" },
+  { secret: "Guitar", hint: "Instrument" },
+  { secret: "Piano", hint: "Instrument" },
+  { secret: "Drum", hint: "Instrument" },
+  { secret: "Football", hint: "Sport" },
+  { secret: "Basketball", hint: "Sport" }
+  { secret: "Baseball", hint: "Sport" },
+  { secret: "Baseball Bat", hint: "Sporting Goods" },
+  { secret: "Baseball Glove", hint: "Sporting Goods" },
+  { secret: "Home Plate", hint: "Sport" },
+  { secret: "Umpire", hint: "Profession" },
+  { secret: "Soccer Ball", hint: "Sporting Goods" },
+  { secret: "Tennis Racket", hint: "Sporting Goods" },
+  { secret: "Bowling Pin", hint: "Game" },
+  { secret: "Skateboard", hint: "Vehicle" },
+  { secret: "Roller Skates", hint: "Footwear" },
+  { secret: "Pickaxe", hint: "Tool" },
+  { secret: "Creeper", hint: "Video Game Character" },
+  { secret: "Arrow", hint: "Weapon" },
+  { secret: "Brick", hint: "Building Material" },
+  { secret: "Gamepad", hint: "Electronic" },
+  { secret: "Dice", hint: "Game" },
+  { secret: "Puzzle", hint: "Game" },
+  { secret: "Yo-Yo", hint: "Toy" },
+  { secret: "Kite", hint: "Toy" },
+  { secret: "Balloon", hint: "Party Item" },
+  { secret: "Butter", hint: "Food" },
+  { secret: "Scone", hint: "Food" },
+  { secret: "Pretzel", hint: "Food" },
+  { secret: "Burrito", hint: "Food" },
+  { secret: "Steak", hint: "Food" },
+  { secret: "Bacon", hint: "Food" },
+  { secret: "Mushroom", hint: "Food" },
+  { secret: "Onion", hint: "Food" },
+  { secret: "Peach", hint: "Food" },
+  { secret: "Coconut", hint: "Food" },
+  { secret: "Colosseum", hint: "Building" },
+  { secret: "Gladiator", hint: "History" },
+  { secret: "Chariot", hint: "Vehicle" },
+  { secret: "Shield", hint: "Armor" },
+  { secret: "Helmet", hint: "Armor" },
+  { secret: "Crown", hint: "Accessory" },
+  { secret: "Pyramid", hint: "Building" },
+  { secret: "Mummy", hint: "Monster" },
+  { secret: "Headphones", hint: "Electronic" },
+  { secret: "Drumstick", hint: "Instrument Accessory" },
+  { secret: "Flute", hint: "Instrument" },
+  { secret: "Paintbrush", hint: "Art Supply" },
+  { secret: "Palette", hint: "Art Supply" },
+  { secret: "Microphone", hint: "Electronic" },
+  { secret: "Record Player", hint: "Electronic" },
+  { secret: "Speaker", hint: "Electronic" },
+  { secret: "Trumpet", hint: "Instrument" },
+  { secret: "Violin", hint: "Instrument" },
+  { secret: "3D Printer", hint: "Machine" },
+  { secret: "Gears", hint: "Machine Part" },
+  { secret: "Hammer", hint: "Tool" },
+  { secret: "Wrench", hint: "Tool" },
+  { secret: "Screwdriver", hint: "Tool" },
+  { secret: "Saw", hint: "Tool" },
+  { secret: "Drill", hint: "Tool" },
+  { secret: "Ruler", hint: "School Supply" },
+  { secret: "Calculator", hint: "School Supply" },
+  { secret: "Microscope", hint: "Science Tool" },
+  { secret: "Bat", hint: "Animal" },
+  { secret: "Raccoon", hint: "Animal" },
+  { secret: "Squirrel", hint: "Animal" },
+  { secret: "Fox", hint: "Animal" },
+  { secret: "Wolf", hint: "Animal" },
+  { secret: "Zebra", hint: "Animal" },
+  { secret: "Cheetah", hint: "Animal" },
+  { secret: "Gorilla", hint: "Animal" },
+  { secret: "Walrus", hint: "Animal" },
+  { secret: "Seahorse", hint: "Animal" },
+  { secret: "River", hint: "Nature" },
+  { secret: "Waterfall", hint: "Nature" },
+  { secret: "Cave", hint: "Nature" },
+  { secret: "Tornado", hint: "Weather" },
+  { secret: "Rainbow", hint: "Weather" },
+  { secret: "Lightning", hint: "Weather" },
+  { secret: "Cactus", hint: "Nature" },
+  { secret: "Rose", hint: "Nature" },
+  { secret: "Sunflower", hint: "Nature" },
+  { secret: "Iceberg", hint: "Nature" },
+  { secret: "Earth", hint: "Space" },
+  { secret: "Planet", hint: "Space" },
+  { secret: "Comet", hint: "Space" },
+  { secret: "Telescope", hint: "Science Tool" },
+  { secret: "Globe", hint: "School Supply" },
+  { secret: "Map", hint: "Object" },
+  { secret: "Compass", hint: "Tool" },
+  { secret: "Binoculars", hint: "Tool" },
+  { secret: "Tractor", hint: "Vehicle" },
+  { secret: "Fire Truck", hint: "Vehicle" },
+  { secret: "Ambulance", hint: "Vehicle" },
+  { secret: "Submarine", hint: "Vehicle" },
+  { secret: "Scooter", hint: "Vehicle" },
+  { secret: "Wheelchair", hint: "Medical Equipment" },
+  { secret: "Stroller", hint: "Object" },
+  { secret: "Trophy", hint: "Award" },
+  { secret: "Medal", hint: "Award" },
+  { secret: "Whistle", hint: "Object" },
+  { secret: "Typewriter", hint: "Machine" },
+  { secret: "Scroll", hint: "Object" },
+  { secret: "Oven", hint: "Appliance" },
+  { secret: "Grill", hint: "Appliance" },
+  { secret: "Campfire", hint: "Nature" },
+  { secret: "Diamond", hint: "Gemstone" }    
+]
+  }
+];
+
+if (typeof window !== 'undefined') {
+  window.CATEGORIES = CATEGORIES;
+}
